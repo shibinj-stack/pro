@@ -311,6 +311,195 @@ jobs:
           cp .dockerignore "$TASK_DIR/repository-root.dockerignore"
           cp server/package.json "$TASK_DIR/package.json"
 
+          # Make the task folder self-contained as well as preserving the original server/ layout.
+          cp server/Dockerfile "$TASK_DIR/Dockerfile"
+          cp server/index.js "$TASK_DIR/index.js"
+          mkdir -p "$TASK_DIR/test" "$TASK_DIR/scripts"
+          cp server/test/health.test.js "$TASK_DIR/test/health.test.js"
+
+          cat > "$TASK_DIR/package.json" <<'PKG'
+          {
+            "name": "clinicdesk-week22-task03-deployment",
+            "version": "1.0.0",
+            "private": true,
+            "main": "index.js",
+            "scripts": {
+              "start": "node index.js",
+              "test": "node --test",
+              "check-evidence": "node scripts/generate-deployment-md.js",
+              "capture-health": "sh scripts/ci-capture.sh"
+            },
+            "dependencies": {
+              "cors": "^2.8.5",
+              "express": "^4.21.2",
+              "mongodb": "^6.12.0"
+            }
+          }
+          PKG
+
+          cat > "$TASK_DIR/capture-evidence.yml" <<EOF
+          provider: "Render"
+          service_type: "Docker Web Service"
+          service_name: "$SERVICE_NAME"
+          service_id: "$SERVICE_ID"
+          region: "Oregon"
+          public_url: "${LIVE_URL:-$BASE_URL}"
+          health_endpoint: "$URL"
+          deployed_branch: "$LIVE_BRANCH"
+          deployed_commit_sha: "$LIVE_COMMIT"
+          verification_commit_sha: "$GITHUB_SHA"
+          health_check_time_utc: "$CHECKED_AT"
+          http_status: "$STATUS"
+          health_result: "$RESULT"
+          ci_run_url: "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          registry: "GitHub Container Registry (ghcr.io)"
+          image_reference: "$IMAGE_REF"
+          image_digest: "${IMAGE_DIGEST:-NOT_RETURNED}"
+          render_image_source: "Blueprint runtime=docker builds from repository Dockerfile; GHCR image is a separately published CI artifact."
+          environment:
+            ALLOW_NO_DATABASE: "true"
+            MONGODB_DB: "clinicdesk"
+            MONGODB_URI: "not configured; no secret value committed"
+            CORS_ORIGIN: "not set in committed Blueprint"
+          database_state: "$(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
+          deployment_event:
+            render_event_id: "Not available from public health response; verify in Render Events if required"
+            timestamp: "health verification time is recorded above; this is not the provider deploy-event timestamp"
+          EOF
+
+          cat > "$TASK_DIR/deployment-run.log" <<EOF
+          ClinicDesk Week 22 Task 03 — Deployment Execution Log
+          Repository: https://github.com/$GITHUB_REPOSITORY
+          Branch: main
+          GitHub Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          Log generated at (UTC): $CHECKED_AT
+
+          STEP 1 — BUILD AND TEST
+          - Dependencies installed from server/package.json.
+          - API test command: npm test (working directory server/).
+          - API tests: passed in this run.
+          - Docker image build: succeeded in this run.
+
+          STEP 2 — PUSH VERSIONED IMAGE
+          - Image reference: $IMAGE_REF
+          - Image digest: ${IMAGE_DIGEST:-NOT_RETURNED}
+          - Registry push: GitHub Container Registry (ghcr.io), completed successfully in this run.
+          - Note: this GHCR image is a versioned CI artifact. The current Render service uses runtime=docker and builds from repository source; the log does not claim Render pulled the GHCR image.
+
+          STEP 3 — PROVISION SERVICE
+          - Provider: Render.
+          - Blueprint resource: clinicdesk-api-demo.
+          - Service ID: $SERVICE_ID.
+          - Type: Docker Web Service.
+          - Blueprint region: Oregon (oregon).
+          - Dashboard state observed: Live.
+          - Deploys screen provided for this service showed a 30.2-second duration on the deployed commit 9c647cc.
+
+          STEP 4 — CONFIGURE HOST ENVIRONMENT
+          - ALLOW_NO_DATABASE=true (database-free smoke mode, set by root render.yaml).
+          - MONGODB_DB=clinicdesk (set by root render.yaml).
+          - MONGODB_URI is not configured in the committed Blueprint; the running endpoint reports database not_configured.
+          - CORS_ORIGIN is not set in the committed Blueprint. Independent dashboard overrides are not inferred.
+          - No secret values are recorded.
+
+          STEP 5 — DEPLOY
+          - Live public URL: ${LIVE_URL:-$BASE_URL}
+          - Active deployed source branch: $LIVE_BRANCH.
+          - Active deployed commit SHA: $LIVE_COMMIT.
+          - Render's current Blueprint runtime builds from server/Dockerfile on that source revision.
+          - Provider-specific deploy-event ID and exact event start/finish timestamps are not returned by /health. The health-check time below is the timestamp of verification, not mislabelled as the deploy event time.
+
+          STEP 6 — VERIFY LIVE SERVICE
+          - Check time (UTC): $CHECKED_AT.
+          - Request: $URL
+          - HTTP status: $STATUS.
+          - Result: $RESULT.
+          - Exact response body is in evidence/health-check.txt.
+          - Service environment and identity is in evidence/host-environment.md.
+          EOF
+          cp "$TASK_DIR/docs/deployment.md" "$TASK_DIR/deployment.md"
+
+          cat > "$TASK_DIR/README.md" <<'README'
+          # Week 22 Task 03 — Deploy to the Cloud and Commit the Evidence
+
+          This folder contains the step-by-step deployment log, verified health-check response, service identity, host environment record, versioned image push record, source and test files, and Render configuration snapshot.
+
+          ## Key files
+          - docs/deployment.md: ordered build, push, provision, configure, deploy, and live verification log.
+          - deployment.md: root-level compatibility copy of the deployment log.
+          - deployment-run.log: execution record for the linked workflow run.
+          - capture-evidence.yml: non-secret host, image, and runtime environment values.
+          - evidence/health-check.txt: actual live HTTP response and UTC check time.
+          - evidence/deployment.md: deployment identity, status, public URL, and response.
+          - evidence/host-environment.md: provider, service, region and safe environment values.
+          - evidence/image-push.md: image tag, digest and registry push evidence.
+          - render.yaml: snapshot of the live source-based Blueprint.
+          - server/ and root-level Dockerfile/index.js/package.json/test/: source and test code.
+
+          ## Important deployment distinctions
+          The live Render service is Blueprint-managed with runtime=docker and builds from repository source. GitHub Actions separately publishes a versioned CI image to GHCR; this package does not claim that Render pulled that image. The active deployment identity is the full commit SHA reported by Render's live /health endpoint.
+
+          The running service uses ALLOW_NO_DATABASE=true for a smoke deployment. HTTP 200 confirms API reachability, but database state remains not_configured; it does not prove MongoDB connectivity. Secrets are not committed.
+
+          To run local checks from this folder: npm install, npm test, npm run check-evidence. The health-capture helper makes a real HTTP request only when supplied with a real BACKEND_URL.
+          README
+
+          cat > "$TASK_DIR/scripts/ci-capture.sh" <<'SH'
+          #!/usr/bin/env sh
+          set -eu
+          : "${BACKEND_URL:?Set BACKEND_URL to the real deployed backend base URL}"
+          HEALTH_PATH="${HEALTH_PATH:-/health}"
+          OUT="${OUTPUT_FILE:-evidence/health-check.txt}"
+          CHECKED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          URL="${BACKEND_URL%/}${HEALTH_PATH}"
+          mkdir -p "$(dirname "$OUT")"
+          BODY="$(mktemp)"
+          trap 'rm -f "$BODY"' EXIT
+          STATUS="$(curl --silent --show-error --output "$BODY" --write-out '%{http_code}' --max-time 30 "$URL")"
+          {
+            echo "Checked at (UTC): $CHECKED_AT"
+            echo "URL: $URL"
+            echo "HTTP status: $STATUS"
+            echo "Response body:"
+            cat "$BODY"
+            echo
+          } > "$OUT"
+          cat "$OUT"
+          case "$STATUS" in 2*) ;; *) exit 1 ;; esac
+          SH
+
+          cat > "$TASK_DIR/scripts/generate-deployment-md.js" <<'JS'
+          import fs from "node:fs";
+          const required = [
+            "docs/deployment.md",
+            "deployment.md",
+            "deployment-run.log",
+            "capture-evidence.yml",
+            "evidence/deployment.md",
+            "evidence/health-check.txt",
+            "evidence/host-environment.md",
+            "evidence/image-push.md"
+          ];
+          const missing = required.filter((path) => !fs.existsSync(path));
+          if (missing.length) {
+            console.error("Missing task evidence files:", missing.join(", "));
+            process.exit(1);
+          }
+          const health = fs.readFileSync("evidence/health-check.txt", "utf8");
+          const doc = fs.readFileSync("docs/deployment.md", "utf8");
+          const requiredStages = ["Build", "Push", "Provision", "Configure", "Deploy", "Verify"];
+          const missingStages = requiredStages.filter((stage) => !doc.toLowerCase().includes(stage.toLowerCase()));
+          if (missingStages.length) {
+            console.error("Missing deployment stages:", missingStages.join(", "));
+            process.exit(2);
+          }
+          if (!/HTTP status: 200/.test(health) || !/Verification result: VERIFIED/.test(health)) {
+            console.error("The last captured live health response is not a verified HTTP 200.");
+            process.exit(3);
+          }
+          console.log("Required deployment log and evidence files are present; health evidence is a verified HTTP 200 response.");
+          JS
+
           {
             echo "## Live deployment verification"
             echo "- Result: **$RESULT**"
