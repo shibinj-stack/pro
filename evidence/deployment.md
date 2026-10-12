@@ -5,9 +5,9 @@
 ## Repository and verification
 - Repository: https://github.com/shibinj-stack/pro
 - Branch tested by GitHub Actions: main
-- GitHub workflow commit: b501a3a9856b61ab0130e494f396f873e882cbbd
-- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38231895453
-- Live health check time (UTC): 2026-10-12T09:45:44Z
+- GitHub workflow commit: c88d20c3557468dcd8ff5610be05adfa44671055
+- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38231919989
+- Live health check time (UTC): 2026-10-12T09:45:49Z
 - HTTP status from /health: 200
 - Verification note: The endpoint returned HTTP 200, but MongoDB state is 'not_configured'. A database-free smoke response is not accepted as a full deployment pass.
 - MongoDB status from response: not_configured
@@ -34,7 +34,7 @@
 
 ## Exact health response
  ```json
-{"status":"ok","service":"clinicdesk-api","database":"not_configured","databaseUriConfigured":false,"allowNoDatabase":true,"timestamp":"2026-10-12T09:45:43.940Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"b501a3a9856b61ab0130e494f396f873e882cbbd"}}
+{"status":"ok","service":"clinicdesk-api","database":"not_configured","databaseUriConfigured":false,"allowNoDatabase":true,"timestamp":"2026-10-12T09:45:49.489Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"b501a3a9856b61ab0130e494f396f873e882cbbd"}}
  ```
 
 Secrets are intentionally excluded.
