@@ -157,6 +157,8 @@ jobs:
 
           CHECKED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           FINAL_DATABASE_STATE="$(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
+          MONGODB_URI_CONFIGURED="$(jq -r '.databaseUriConfigured // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
+          ALLOW_NO_DATABASE_VALUE="$(jq -r '.allowNoDatabase // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
           case "$FINAL_DATABASE_STATE" in
             connected) MONGO_URI_STATUS="configured in Render and connected (secret value intentionally redacted)" ;;
             disconnected) MONGO_URI_STATUS="present/attempted but MongoDB connection failed; verify URI, database user, and Atlas network access (value redacted)" ;;
@@ -217,7 +219,7 @@ jobs:
             echo "- Service type: Docker Web Service"
             echo "- ALLOW_NO_DATABASE=true (Blueprint setting for database-free smoke test; this does not prove MongoDB connectivity)"
             echo "- MONGODB_DB=clinicdesk (Blueprint setting)"
-            echo "- MONGODB_URI is declared with sync: false and must be set as a secret in the Render dashboard; its value is never logged. Live database state: $(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
+            echo "- MONGODB_URI is declared with sync: false. Runtime configured flag: $MONGODB_URI_CONFIGURED; connection state: $FINAL_DATABASE_STATE; $MONGO_URI_STATUS"
             echo "- CORS_ORIGIN: not set in the committed Blueprint; separate dashboard overrides are not inferred"
             echo "- Render-injected metadata verified live: service name, service ID, external URL, Git branch, and full deployed Git commit SHA"
             echo
@@ -330,8 +332,8 @@ jobs:
 
           ## 4. Configure host environment
           - Blueprint and returned host-configuration values audited (UTC): $HOST_CONFIG_AUDIT_AT.
-          - ALLOW_NO_DATABASE=true was configured by render.yaml for a database-free smoke deployment.
-          - MONGODB_DB=clinicdesk was configured by render.yaml.
+          - ALLOW_NO_DATABASE runtime value reported by /health: $ALLOW_NO_DATABASE_VALUE. CI still requires database=connected, so a smoke-mode response is not accepted as complete.
+          - MONGODB_DB=clinicdesk is configured by render.yaml.
           - MONGODB_URI is declared as a non-synced Render secret (sync: false). Configure a real Atlas connection string in the Render dashboard; its value is never committed or logged.
           - Live database state observed during this run: $(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED).
           - CORS_ORIGIN is not set in the committed Blueprint; any independent dashboard override is not inferred.
@@ -481,9 +483,9 @@ jobs:
 
           STEP 4 — CONFIGURE HOST ENVIRONMENT
           - Blueprint/host environment values audited (UTC): $HOST_CONFIG_AUDIT_AT.
-          - ALLOW_NO_DATABASE=true (database-free smoke mode, set by root render.yaml).
+          - ALLOW_NO_DATABASE runtime value from /health: $ALLOW_NO_DATABASE_VALUE; CI rejects smoke-only verification.
           - MONGODB_DB=clinicdesk (set by root render.yaml).
-          - MONGODB_URI is declared in render.yaml with sync: false and must be configured as a secret in the Render dashboard. Live database state: $FINAL_DATABASE_STATE. $MONGO_URI_STATUS.
+          - MONGODB_URI is declared in render.yaml with sync: false and must be configured as a secret in the Render dashboard. Runtime configured flag: $MONGODB_URI_CONFIGURED. Live database state: $FINAL_DATABASE_STATE. $MONGO_URI_STATUS.
           - CORS_ORIGIN is not set in the committed Blueprint. Independent dashboard overrides are not inferred.
           - No secret values are recorded.
 
@@ -573,17 +575,41 @@ jobs:
           }
           const health = fs.readFileSync("evidence/health-check.txt", "utf8");
           const doc = fs.readFileSync("docs/deployment.md", "utf8");
-          const requiredStages = ["Build", "Push", "Provision", "Configure", "Deploy", "Verify"];
+          const runLog = fs.readFileSync("deployment-run.log", "utf8");
+          const requiredStages = ["1. Build and validate", "2. Push the versioned container image", "3. Provision the cloud service", "4. Configure host environment", "5. Deploy the application", "6. Verify the live deployment"];
           const missingStages = requiredStages.filter((stage) => !doc.toLowerCase().includes(stage.toLowerCase()));
           if (missingStages.length) {
-            console.error("Missing deployment stages:", missingStages.join(", "));
+            console.error("Missing ordered deployment stages:", missingStages.join(", "));
             process.exit(2);
           }
-          if (!/HTTP status: 200/.test(health) || !/Verification result: VERIFIED/.test(health)) {
-            console.error("The last captured live health response is not a verified HTTP 200.");
+          const requiredTimes = [
+            "Dependency installation started (UTC):",
+            "Dependency installation completed (UTC):",
+            "API tests started (UTC):",
+            "API tests completed (UTC):",
+            "Docker build started (UTC):",
+            "Docker build completed (UTC):",
+            "Registry push started (UTC):",
+            "Registry push completed (UTC):",
+            "Provisioned service state/identity verified (UTC):",
+            "Blueprint and returned host-configuration values audited (UTC):",
+            "Active deployed revision and branch observed (UTC):",
+            "Verification completed (UTC):"
+          ];
+          const missingTimes = requiredTimes.filter((label) => !doc.includes(label));
+          if (missingTimes.length) {
+            console.error("Missing stage timestamps:", missingTimes.join(", "));
             process.exit(3);
           }
-          console.log("Required deployment log and evidence files are present; health evidence is a verified HTTP 200 response.");
+          if (!/Backend URL: https:\/\//.test(health) || !/Checked at \(UTC\): \d{4}-\d\d-\d\dT/.test(health) || !/HTTP status: \d{3}/.test(health) || !/Exact response body:/.test(health)) {
+            console.error("Health evidence is missing a real URL, timestamp, HTTP status or response body.");
+            process.exit(4);
+          }
+          if (!/STEP 1 — BUILD AND TEST/.test(runLog) || !/STEP 6 — VERIFY LIVE SERVICE/.test(runLog)) {
+            console.error("Execution log is missing ordered stages.");
+            process.exit(5);
+          }
+          console.log("Ordered deployment log, stage timestamps and a real captured health response are present. The live database gate is evaluated separately.");
           JS
 
           # Preserve the exact generated files for a retry-safe evidence commit.
@@ -600,6 +626,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           echo "verified=$VERIFIED" >> "$GITHUB_OUTPUT"
+          echo "database_connected=$([ "$FINAL_DATABASE_STATE" = "connected" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           echo "evidence_written=true" >> "$GITHUB_OUTPUT"
 
       - name: Validate AxReview task-folder evidence
@@ -638,8 +665,8 @@ jobs:
           echo "Failed to commit evidence after 5 retries."
           exit 1
 
-      - name: Fail deployment verification when live health check is not successful
-        if: ${{ steps.healthcheck.outputs.evidence_written == 'true' && steps.healthcheck.outputs.verified != 'true' }}
+      - name: Fail deployment verification when live health or MongoDB is not successful
+        if: ${{ always() && steps.healthcheck.outputs.evidence_written == 'true' && (steps.healthcheck.outputs.verified != 'true' || steps.healthcheck.outputs.database_connected != 'true') }}
         run: |
-          echo "Live deployment verification failed. Actual response and diagnosis were committed to evidence/."
+          echo "Full deployment verification failed: the API and MongoDB must both be healthy. The actual response and diagnostic evidence were committed."
           exit 1
