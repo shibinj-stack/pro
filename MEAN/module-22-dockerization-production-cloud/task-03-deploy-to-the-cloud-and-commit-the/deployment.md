@@ -12,30 +12,30 @@
 - Branch: main
 
 ## 1. Build and validate the application
-- Dependency installation started (UTC): 2026-10-12T09:46:20Z
-- Dependency installation completed (UTC): 2026-10-12T09:46:22Z
-- API tests started (UTC): 2026-10-12T09:46:22Z
-- API tests completed (UTC): 2026-10-12T09:46:23Z
+- Dependency installation started (UTC): 2026-10-12T09:46:33Z
+- Dependency installation completed (UTC): 2026-10-12T09:46:36Z
+- API tests started (UTC): 2026-10-12T09:46:36Z
+- API tests completed (UTC): 2026-10-12T09:46:36Z
 - The GitHub Actions workflow installed the API dependencies in server/ and ran the Node HTTP tests.
 - Test command: npm test (working directory: server).
 - Docker build context: server/.
 - Dockerfile: server/Dockerfile.
 - Result in this workflow run: API tests passed and the Docker image build completed successfully.
-- Build/run details: https://github.com/shibinj-stack/pro/actions/runs/38232007920
+- Build/run details: https://github.com/shibinj-stack/pro/actions/runs/38232035880
 
 ## 2. Push the versioned container image
-- Docker build started (UTC): 2026-10-12T09:46:23Z
-- Docker build completed (UTC): 2026-10-12T09:46:33Z
-- Registry push started (UTC): 2026-10-12T09:46:33Z
-- Registry push completed (UTC): 2026-10-12T09:46:38Z
+- Docker build started (UTC): 2026-10-12T09:46:36Z
+- Docker build completed (UTC): 2026-10-12T09:46:48Z
+- Registry push started (UTC): 2026-10-12T09:46:48Z
+- Registry push completed (UTC): 2026-10-12T09:46:54Z
 - Registry: GitHub Container Registry (ghcr.io).
 - Pushed image reference: ghcr.io/shibinj-stack/clinicdesk-api-demo:5833caa908a2f7ae6361f84ea49c4948c728f479
-- Image digest: sha256:94ae00fe8e4785502e6a62e538d8769059039564e0b21992e220264c9fa69a20
+- Image digest: sha256:ef2b8bd8993aa7924f8989b6375d844a08ff3229f5bb67deff6b1045a9382b91
 - The GHCR publish step completed successfully in the linked workflow run.
 - Deployment relationship: the existing Render service is configured with runtime=docker in render.yaml. Render builds from the repository's Dockerfile; this log does not falsely claim that Render pulled the separate GHCR image.
 
 ## 3. Provision the cloud service
-- Provisioned service state/identity verified (UTC): 2026-10-12T09:46:38Z. This is when the live service was confirmed by the health endpoint, not a fabricated historical create-event time.
+- Provisioned service state/identity verified (UTC): 2026-10-12T09:46:54Z. This is when the live service was confirmed by the health endpoint, not a fabricated historical create-event time.
 - Render Blueprint: repository-root render.yaml.
 - Render created the web service clinicdesk-api-demo.
 - Service ID observed from the live health payload: srv-db698s8473hc73dkp5vg.
@@ -44,7 +44,7 @@
 - Render dashboard showed the service as Live; the supplied Deploys screenshot showed a 30.2 second duration for the deployment row running commit 9c647cc.
 
 ## 4. Configure host environment
-- Blueprint and returned host-configuration values audited (UTC): 2026-10-12T09:46:38Z.
+- Blueprint and returned host-configuration values audited (UTC): 2026-10-12T09:46:54Z.
 - ALLOW_NO_DATABASE runtime value reported by /health: true. CI still requires database=connected, so a smoke-mode response is not accepted as complete.
 - MONGODB_DB=clinicdesk is configured by render.yaml.
 - MONGODB_URI is declared as a non-synced Render secret (sync: false). Configure a real Atlas connection string in the Render dashboard; its value is never committed or logged.
@@ -53,7 +53,7 @@
 - No secret values are written to source control or this log.
 
 ## 5. Deploy the application
-- Active deployed revision and branch observed (UTC): 2026-10-12T09:46:38Z.
+- Active deployed revision and branch observed (UTC): 2026-10-12T09:46:54Z.
 - Render deployed the Git source revision reported by the running service: 31dfc29e6d3e4493c0c331b054cac9782cae7313.
 - The deployed branch reported by Render: main.
 - Render service public URL: https://clinicdesk-api-demo.onrender.com.
@@ -61,14 +61,14 @@
 - The exact provider deployment event start/finish times are not exposed by the public health endpoint. Use the Render Deploys/Events panel for provider-specific event timestamps if the evaluator requires them.
 
 ## 6. Verify the live deployment
-- Verification completed (UTC): 2026-10-12T09:46:38Z
+- Verification completed (UTC): 2026-10-12T09:46:54Z
 - Endpoint requested: https://clinicdesk-api-demo.onrender.com/health
 - HTTP response status: 200
 - Health verification result: VERIFICATION FAILED
 - Response body and Render identity metadata: ../evidence/health-check.txt
 - Host/service environment record: ../evidence/host-environment.md
 - Deployment evidence: ../evidence/deployment.md
-- Verification workflow: https://github.com/shibinj-stack/pro/actions/runs/38232007920
+- Verification workflow: https://github.com/shibinj-stack/pro/actions/runs/38232035880
 
 ## Result and qualification
-The live API returned HTTP 200 and supplied Render service identity, branch, and deployed commit metadata at 2026-10-12T09:46:38Z. The app is in database-free smoke-test mode (database not_configured); this confirms API reachability, not MongoDB connectivity. The API source in this repository is a minimal deployment demo, not the original full ClinicDesk MEAN application.
+The live API returned HTTP 200 and supplied Render service identity, branch, and deployed commit metadata at 2026-10-12T09:46:54Z. The app is in database-free smoke-test mode (database not_configured); this confirms API reachability, not MongoDB connectivity. The API source in this repository is a minimal deployment demo, not the original full ClinicDesk MEAN application.
