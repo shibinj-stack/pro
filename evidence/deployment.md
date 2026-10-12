@@ -5,9 +5,9 @@
 ## Repository and verification
 - Repository: https://github.com/shibinj-stack/pro
 - Branch tested by GitHub Actions: main
-- GitHub workflow commit: c8c26b6309a3f08ebae9bb11069fbdb298333e6c
-- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38227511993
-- Live health check time (UTC): 2026-10-12T09:04:36Z
+- GitHub workflow commit: ddab8072ab2baa02a16bb0ab29f6dc309f183f97
+- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38227692541
+- Live health check time (UTC): 2026-10-12T09:06:23Z
 - HTTP status from /health: 200
 - Verification note: HTTP 200; application reports healthy and supplies Render service/commit metadata.
 
@@ -17,12 +17,23 @@
 - Render public URL: https://clinicdesk-api-demo.onrender.com
 - Render deployed branch: main
 - Render deployed commit SHA: 9c647ccf3fb6f443267f01b6e8f1505488bf70a8
-- Render region configured in render.yaml: Oregon (confirm in dashboard)
-- Render deploy ID and exact start/finish timestamp: check the Render Events page; these are not exposed by the health endpoint.
+- Blueprint-declared Render region: Oregon (oregon)
+- Deployment identity: full running Git commit SHA above, returned by the live Render service.
+- Provider-specific Render deploy-event ID and exact event start/finish times are not returned by the public health endpoint. The timestamped live verification above records when the running revision was checked; use Render Events for provider-only event fields if specifically required.
+- Render Deploys dashboard screenshot showed the running short commit 9c647cc and a 30.2s duration.
+
+## Host environment values
+- Provider: Render
+- Service type: Docker Web Service
+- ALLOW_NO_DATABASE=true (Blueprint setting for database-free smoke test; this does not prove MongoDB connectivity)
+- MONGODB_DB=clinicdesk (Blueprint setting)
+- MONGODB_URI: not configured in the committed Blueprint; live payload reports database not_configured
+- CORS_ORIGIN: not set in the committed Blueprint; separate dashboard overrides are not inferred
+- Render-injected metadata verified live: service name, service ID, external URL, Git branch, and full deployed Git commit SHA
 
 ## Exact health response
  ```json
-{"status":"ok","service":"clinicdesk-api","database":"not_configured","timestamp":"2026-10-12T09:04:36.364Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"9c647ccf3fb6f443267f01b6e8f1505488bf70a8"}}
+{"status":"ok","service":"clinicdesk-api","database":"not_configured","timestamp":"2026-10-12T09:06:23.236Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"9c647ccf3fb6f443267f01b6e8f1505488bf70a8"}}
  ```
 
 Secrets are intentionally excluded.
