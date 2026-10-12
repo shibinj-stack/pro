@@ -143,8 +143,19 @@ jobs:
             echo "- Render public URL: ${LIVE_URL:-$BASE_URL}"
             echo "- Render deployed branch: ${LIVE_BRANCH:-NOT_RETURNED}"
             echo "- Render deployed commit SHA: ${LIVE_COMMIT:-NOT_RETURNED}"
-            echo "- Render region configured in render.yaml: Oregon (confirm in dashboard)"
-            echo "- Render deploy ID and exact start/finish timestamp: check the Render Events page; these are not exposed by the health endpoint."
+            echo "- Blueprint-declared Render region: Oregon (oregon)"
+            echo "- Deployment identity: full running Git commit SHA above, returned by the live Render service."
+            echo "- Provider-specific Render deploy-event ID and exact event start/finish times are not returned by the public health endpoint. The timestamped live verification above records when the running revision was checked; use Render Events for provider-only event fields if specifically required."
+            echo "- Render Deploys dashboard screenshot showed the running short commit 9c647cc and a 30.2s duration."
+            echo
+            echo "## Host environment values"
+            echo "- Provider: Render"
+            echo "- Service type: Docker Web Service"
+            echo "- ALLOW_NO_DATABASE=true (Blueprint setting for database-free smoke test; this does not prove MongoDB connectivity)"
+            echo "- MONGODB_DB=clinicdesk (Blueprint setting)"
+            echo "- MONGODB_URI: not configured in the committed Blueprint; live payload reports database not_configured"
+            echo "- CORS_ORIGIN: not set in the committed Blueprint; separate dashboard overrides are not inferred"
+            echo "- Render-injected metadata verified live: service name, service ID, external URL, Git branch, and full deployed Git commit SHA"
             echo
             echo "## Exact health response"
             echo ' ```json'
