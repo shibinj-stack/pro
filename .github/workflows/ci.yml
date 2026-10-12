@@ -172,8 +172,8 @@ jobs:
 
           CHECKED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           FINAL_DATABASE_STATE="$(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
-          MONGODB_URI_CONFIGURED="$(jq -r '.databaseUriConfigured // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
-          ALLOW_NO_DATABASE_VALUE="$(jq -r '.allowNoDatabase // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
+          MONGODB_URI_CONFIGURED="$(jq -r 'if has("databaseUriConfigured") then .databaseUriConfigured else "NOT_RETURNED" end' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
+          ALLOW_NO_DATABASE_VALUE="$(jq -r 'if has("allowNoDatabase") then .allowNoDatabase else "NOT_RETURNED" end' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
           case "$FINAL_DATABASE_STATE" in
             connected) MONGO_URI_STATUS="configured in Render and connected (secret value intentionally redacted)" ;;
             disconnected) MONGO_URI_STATUS="present/attempted but MongoDB connection failed; verify URI, database user, and Atlas network access (value redacted)" ;;
