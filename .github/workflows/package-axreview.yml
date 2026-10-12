@@ -36,6 +36,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          TASK_DIR="$GITHUB_WORKSPACE/MEAN/module-22-dockerization-production-cloud/task-03-deploy-to-the-cloud-and-commit-the"
+          HEALTH_FILE="$TASK_DIR/evidence/health-check.txt"
+          HEALTH_BODY="$(sed -n '/^Exact response body:/{n;p;}' "$HEALTH_FILE" | head -n 1)"
+          HEALTH_RESULT="$(sed -n 's/^Verification result: //p' "$HEALTH_FILE" | head -n 1)"
+          HTTP_STATUS="$(sed -n 's/^HTTP status: //p' "$HEALTH_FILE" | head -n 1)"
+          DB_STATE="$(printf '%s' "$HEALTH_BODY" | jq -r '.database // "NOT_RETURNED"' 2>/dev/null || echo NOT_RETURNED)"
+          DB_URI_CONFIGURED="$(printf '%s' "$HEALTH_BODY" | jq -r '.databaseUriConfigured // "NOT_RETURNED"' 2>/dev/null || echo NOT_RETURNED)"
+
           cat > AXREVIEW-SUBMISSION-NOTES.md <<EOF
           # AxReview submission notes
 
@@ -62,9 +70,11 @@ jobs:
           ## Last verified results at packaging time
           - API tests: 3 passed, 0 failed
           - Docker image build: passed
-          - Live /health response: HTTP 200
-          - Health payload currently reports database = not_configured; this is a demo smoke deployment and does not prove MongoDB connectivity.
-          - Latest known successful live-verification workflow: https://github.com/shibinj-stack/pro/actions/runs/38227692541
+          - Latest captured /health HTTP status: $HTTP_STATUS
+          - Actual full-verification result: $HEALTH_RESULT
+          - Actual database state: $DB_STATE
+          - MongoDB URI configured flag from payload: $DB_URI_CONFIGURED
+          - A full deployment pass requires database=connected; HTTP 200 alone does not prove MongoDB connectivity.
 
           ## Scope warning
           This repository is a minimal deployment demo, not the user's original full ClinicDesk MEAN stack app. Submit it only if this demo is the project intended for this AxReview task. Do not present it as the original full application.
@@ -73,13 +83,6 @@ jobs:
           A successful CI run and health check are supporting evidence, not a guarantee of AxReview approval. Review any additional evaluator feedback and keep all deployment facts genuine.
           EOF
 
-          TASK_DIR="$GITHUB_WORKSPACE/MEAN/module-22-dockerization-production-cloud/task-03-deploy-to-the-cloud-and-commit-the"
-          HEALTH_FILE="$TASK_DIR/evidence/health-check.txt"
-          HEALTH_BODY="$(sed -n '/^Exact response body:/{n;p;}' "$HEALTH_FILE" | head -n 1)"
-          HEALTH_RESULT="$(sed -n 's/^Verification result: //p' "$HEALTH_FILE" | head -n 1)"
-          HTTP_STATUS="$(sed -n 's/^HTTP status: //p' "$HEALTH_FILE" | head -n 1)"
-          DB_STATE="$(printf '%s' "$HEALTH_BODY" | jq -r '.database // "NOT_RETURNED"' 2>/dev/null || echo NOT_RETURNED)"
-          DB_URI_CONFIGURED="$(printf '%s' "$HEALTH_BODY" | jq -r '.databaseUriConfigured // "NOT_RETURNED"' 2>/dev/null || echo NOT_RETURNED)"
           cat > "$TASK_DIR/SUBMISSION-NOTES.md" <<EOF
           # Week 22 Task 03 — AxReview submission
 
