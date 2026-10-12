@@ -20,6 +20,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   test-and-build:
@@ -43,8 +44,20 @@ jobs:
         working-directory: server
         run: npm test
 
-      - name: Build Docker image
-        run: docker build -f server/Dockerfile -t clinicdesk-api:${{ github.sha }} server
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push versioned Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/clinicdesk-api-demo:${{ github.sha }}
 
       - name: Verify live Render service and capture actual evidence
         id: healthcheck
