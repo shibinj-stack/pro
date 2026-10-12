@@ -32,11 +32,19 @@ async function connectMongo() {
 
 app.get('/health', (_req, res) => {
   const ok = mongoState === 'connected' || process.env.ALLOW_NO_DATABASE === 'true';
+  const onRender = process.env.RENDER === 'true';
   res.status(ok ? 200 : 503).json({
     status: ok ? 'ok' : 'degraded',
     service: 'clinicdesk-api',
     database: mongoState,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    render: onRender ? {
+      serviceName: process.env.RENDER_SERVICE_NAME || null,
+      serviceId: process.env.RENDER_SERVICE_ID || null,
+      externalUrl: process.env.RENDER_EXTERNAL_URL || null,
+      gitBranch: process.env.RENDER_GIT_BRANCH || null,
+      gitCommit: process.env.RENDER_GIT_COMMIT || null
+    } : null
   });
 });
 
@@ -67,7 +75,7 @@ async function startServer(port = Number(process.env.PORT || 10000)) {
   await connectMongo();
   return new Promise((resolve, reject) => {
     const server = app.listen(port, '0.0.0.0', () => {
-      console.log(`ClinicDesk API listening on ${server.address().port}`);
+      console.log(`ClinicDesk API listening on 0.0.0.0:${server.address().port}`);
       resolve(server);
     });
     server.once('error', reject);
