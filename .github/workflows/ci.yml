@@ -548,6 +548,9 @@ jobs:
           console.log("Required deployment log and evidence files are present; health evidence is a verified HTTP 200 response.");
           JS
 
+          # Preserve the exact generated files for a retry-safe evidence commit.
+          tar -czf "$RUNNER_TEMP/deployment-evidence-payload.tar.gz" evidence MEAN/module-22-dockerization-production-cloud/task-03-deploy-to-the-cloud-and-commit-the/
+
           {
             echo "## Live deployment verification"
             echo "- Result: **$RESULT**"
@@ -566,12 +569,36 @@ jobs:
         working-directory: MEAN/module-22-dockerization-production-cloud/task-03-deploy-to-the-cloud-and-commit-the
         run: node scripts/generate-deployment-md.js
 
-      - name: Commit live deployment evidence
+      - name: Commit live deployment evidence (retry-safe)
         if: ${{ always() && steps.healthcheck.outputs.evidence_written == 'true' }}
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'docs: record live Render deployment health evidence'
-          file_pattern: evidence/health-check.txt evidence/deployment.md evidence/host-environment.md evidence/image-push.md MEAN/module-22-dockerization-production-cloud/task-03-deploy-to-the-cloud-and-commit-the/
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          PAYLOAD="$RUNNER_TEMP/deployment-evidence-payload.tar.gz"
+          test -f "$PAYLOAD"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in 1 2 3 4 5; do
+            echo "Evidence commit attempt $attempt/5"
+            git fetch origin main
+            git reset --hard origin/main
+            tar -xzf "$PAYLOAD" -C "$GITHUB_WORKSPACE"
+            git add evidence/health-check.txt evidence/deployment.md evidence/host-environment.md evidence/image-push.md MEAN/module-22-dockerization-production-cloud/task-03-deploy-to-the-cloud-and-commit-the/
+            if git diff --cached --quiet; then
+              echo "Evidence is already up to date."
+              exit 0
+            fi
+            git commit -m "docs: record live Render deployment health evidence"
+            if git push origin HEAD:main; then
+              echo "Deployment evidence committed."
+              exit 0
+            fi
+            echo "Remote main changed during push; reloading latest main and retrying."
+          done
+          echo "Failed to commit evidence after 5 retries."
+          exit 1
 
       - name: Fail deployment verification when live health check is not successful
         if: ${{ steps.healthcheck.outputs.evidence_written == 'true' && steps.healthcheck.outputs.verified != 'true' }}
