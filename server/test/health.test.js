@@ -31,6 +31,8 @@ test('GET /health serves a healthy HTTP response in demo mode', async (t) => {
   assert.equal(response.status, 200);
   assert.equal(body.status, 'ok');
   assert.equal(body.service, 'clinicdesk-api');
+  assert.equal(body.allowNoDatabase, true);
+  assert.equal(body.databaseUriConfigured, false);
   assert.ok(['connected', 'not_configured', 'disconnected'].includes(body.database));
   assert.ok(!Number.isNaN(Date.parse(body.timestamp)));
 });
@@ -49,6 +51,8 @@ test('GET /health reports degraded status without DB or demo mode', async (t) =>
 
   assert.equal(response.status, 503);
   assert.equal(body.status, 'degraded');
+  assert.equal(body.allowNoDatabase, false);
+  assert.equal(body.databaseUriConfigured, false);
 });
 
 test('GET /api returns a data envelope', async (t) => {
