@@ -5,9 +5,9 @@
 ## Repository and verification
 - Repository: https://github.com/shibinj-stack/pro
 - Branch tested by GitHub Actions: main
-- GitHub workflow commit: 2b86f2d1c085f5f8d48cda88dc318fbf5b2ab2bc
-- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38235782169
-- Live health check time (UTC): 2026-10-12T10:21:42Z
+- GitHub workflow commit: 5e0144d415be9dbd13805e6d6526d05dfbb57566
+- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38235842253
+- Live health check time (UTC): 2026-10-12T10:22:12Z
 - HTTP status from /health: 200
 - Verification note: Render service responded with database=not_configured. Set MONGODB_URI as a Render secret and ALLOW_NO_DATABASE=false, then redeploy.
 - MongoDB status from response: not_configured
@@ -34,7 +34,7 @@
 
 ## Exact health response
  ```json
-{"status":"ok","service":"clinicdesk-api","database":"not_configured","databaseUriConfigured":false,"allowNoDatabase":true,"timestamp":"2026-10-12T10:21:42.849Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"67c61a264ff8a7aac9fa2d074a58a2149e26863e"}}
+{"status":"ok","service":"clinicdesk-api","database":"not_configured","databaseUriConfigured":false,"allowNoDatabase":true,"timestamp":"2026-10-12T10:22:12.242Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"67c61a264ff8a7aac9fa2d074a58a2149e26863e"}}
  ```
 
 Secrets are intentionally excluded.

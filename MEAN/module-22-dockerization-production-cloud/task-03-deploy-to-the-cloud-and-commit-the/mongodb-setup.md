@@ -34,7 +34,7 @@ Expected fields for a real pass:
 - `databaseUriConfigured: true`
 - `allowNoDatabase: false`
 
-Then run GitHub Actions → **ClinicDesk deployment checks** → **Run workflow**, leaving the backend URL blank (it defaults to the live Render service). The workflow will capture the actual health response and per-stage timestamps. It only passes the full deployment gate if the live service reports a connected database. On failure, inspect the Render Logs and Atlas Network Access/database-user settings.
+The `MongoDB connectivity watch` workflow polls the live endpoint hourly and also runs when its own workflow or this guide changes. Once it sees `database=connected`, `databaseUriConfigured=true`, and `allowNoDatabase=false`, it automatically dispatches **ClinicDesk deployment checks**. That full workflow reruns tests/build/push, records the actual health response and per-stage timestamps, and only passes if the live service still reports MongoDB connected. You can also trigger **ClinicDesk deployment checks** manually from GitHub Actions if you do not want to wait for the next hourly poll. On failure, inspect Render Logs and Atlas Network Access/database-user settings.
 
 ## What is automated already
 
