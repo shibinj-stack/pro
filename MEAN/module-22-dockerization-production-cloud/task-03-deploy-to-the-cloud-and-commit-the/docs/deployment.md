@@ -12,35 +12,35 @@
 - Branch: main
 
 ## 1. Build and validate the application
-- Dependency installation started (UTC): 2026-10-12T09:52:53Z
-- Dependency installation completed (UTC): 2026-10-12T09:52:56Z
-- API tests started (UTC): 2026-10-12T09:52:56Z
-- API tests completed (UTC): 2026-10-12T09:52:56Z
+- Dependency installation started (UTC): 2026-10-12T09:53:38Z
+- Dependency installation completed (UTC): 2026-10-12T09:53:40Z
+- API tests started (UTC): 2026-10-12T09:53:40Z
+- API tests completed (UTC): 2026-10-12T09:53:41Z
 - The GitHub Actions workflow installed the API dependencies in server/ and ran the Node HTTP tests.
 - Test command: npm test (working directory: server).
 - Docker build context: server/.
 - Dockerfile: server/Dockerfile.
 - Result in this workflow run: API tests passed and the Docker image build completed successfully.
-- Build/run details: https://github.com/shibinj-stack/pro/actions/runs/38232712100
+- Build/run details: https://github.com/shibinj-stack/pro/actions/runs/38232796825
 
 ## 2. Build the versioned container image
-- Docker build started (UTC): 2026-10-12T09:52:56Z
-- Docker build completed (UTC): 2026-10-12T09:53:05Z
-- Command: docker build -f server/Dockerfile -t clinicdesk-api:d0bf3a1e7e73e84d1696433b76de294588722258 server.
+- Docker build started (UTC): 2026-10-12T09:53:41Z
+- Docker build completed (UTC): 2026-10-12T09:53:48Z
+- Command: docker build -f server/Dockerfile -t clinicdesk-api:fe5764b5541435784083d43d52ff2ac9fa676dd6 server.
 - Result: Docker image build completed successfully in this workflow run.
-- Build/run details: https://github.com/shibinj-stack/pro/actions/runs/38232712100
+- Build/run details: https://github.com/shibinj-stack/pro/actions/runs/38232796825
 
 ## 3. Push the versioned container image
-- Registry push started (UTC): 2026-10-12T09:53:06Z
-- Registry push completed (UTC): 2026-10-12T09:53:11Z
+- Registry push started (UTC): 2026-10-12T09:53:48Z
+- Registry push completed (UTC): 2026-10-12T09:53:52Z
 - Registry: GitHub Container Registry (ghcr.io).
-- Pushed image reference: ghcr.io/shibinj-stack/clinicdesk-api-demo:d0bf3a1e7e73e84d1696433b76de294588722258
-- Image digest: sha256:c99fb2e436ea089ca4bd04053cdfe2fa49c2e57ee34b11c7c9fcdda12e599844
+- Pushed image reference: ghcr.io/shibinj-stack/clinicdesk-api-demo:fe5764b5541435784083d43d52ff2ac9fa676dd6
+- Image digest: sha256:b6d8942d7101371633bba49007ee96f82e9b3f7de6f85e7aaca6461a05e82c27
 - The registry push completed successfully in the linked workflow run.
 - Deployment relationship: the existing Render service is configured with runtime=docker in render.yaml. Render builds from the repository's Dockerfile; the GHCR image is a separate CI artifact and is not claimed as the active Render image.
 
 ## 4. Provision the cloud service
-- Provisioned service state/identity verified (UTC): 2026-10-12T09:53:11Z. This is when the live service was confirmed by the health endpoint, not a fabricated historical create-event time.
+- Provisioned service state/identity verified (UTC): 2026-10-12T09:53:52Z. This is when the live service was confirmed by the health endpoint, not a fabricated historical create-event time.
 - Render Blueprint: repository-root render.yaml.
 - Render created the web service clinicdesk-api-demo.
 - Service ID observed from the live health payload: srv-db698s8473hc73dkp5vg.
@@ -49,7 +49,7 @@
 - Render dashboard showed the service as Live; the supplied Deploys screenshot showed a 30.2 second duration for the deployment row running commit 9c647cc.
 
 ## 5. Configure host environment
-- Blueprint and returned host-configuration values audited (UTC): 2026-10-12T09:53:11Z.
+- Blueprint and returned host-configuration values audited (UTC): 2026-10-12T09:53:52Z.
 - ALLOW_NO_DATABASE runtime value reported by /health: true. CI still requires database=connected, so a smoke-mode response is not accepted as complete.
 - MONGODB_DB=clinicdesk is configured by render.yaml.
 - MONGODB_URI has a non-synced secret entry (sync: false). Runtime configured flag: NOT_RETURNED; current state: not_configured; not configured in Render; add the actual connection string as the MONGODB_URI secret (no value committed).
@@ -57,7 +57,7 @@
 - No secret values are written to source control or this log.
 
 ## 6. Deploy the application
-- Active deployed revision and branch observed (UTC): 2026-10-12T09:53:11Z.
+- Active deployed revision and branch observed (UTC): 2026-10-12T09:53:52Z.
 - Render deployed the Git source revision reported by the running service: 31dfc29e6d3e4493c0c331b054cac9782cae7313.
 - The deployed branch reported by Render: main.
 - Render service public URL: https://clinicdesk-api-demo.onrender.com.
@@ -65,14 +65,14 @@
 - The exact provider deployment event start/finish times are not exposed by the public health endpoint. Use the Render Deploys/Events panel for provider-specific event timestamps if the evaluator requires them.
 
 ## 7. Verify the live deployment
-- Verification completed (UTC): 2026-10-12T09:53:11Z
+- Verification completed (UTC): 2026-10-12T09:53:52Z
 - Endpoint requested: https://clinicdesk-api-demo.onrender.com/health
 - HTTP response status: 200
 - Health verification result: VERIFICATION FAILED
 - Response body and Render identity metadata: ../evidence/health-check.txt
 - Host/service environment record: ../evidence/host-environment.md
 - Deployment evidence: ../evidence/deployment.md
-- Verification workflow: https://github.com/shibinj-stack/pro/actions/runs/38232712100
+- Verification workflow: https://github.com/shibinj-stack/pro/actions/runs/38232796825
 
 ## Result and qualification
-The live API returned HTTP 200 and supplied Render service identity, branch, and deployed commit metadata at 2026-10-12T09:53:11Z. MongoDB state: not_configured; URI configured flag: NOT_RETURNED; not configured in Render; add the actual connection string as the MONGODB_URI secret (no value committed). This workflow records a full pass only when the database state is connected. The API source in this repository is a minimal deployment demo, not the original full ClinicDesk MEAN application.
+The live API returned HTTP 200 and supplied Render service identity, branch, and deployed commit metadata at 2026-10-12T09:53:52Z. MongoDB state: not_configured; URI configured flag: NOT_RETURNED; not configured in Render; add the actual connection string as the MONGODB_URI secret (no value committed). This workflow records a full pass only when the database state is connected. The API source in this repository is a minimal deployment demo, not the original full ClinicDesk MEAN application.
