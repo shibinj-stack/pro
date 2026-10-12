@@ -7,7 +7,16 @@ services:
     dockerfilePath: ./server/Dockerfile
     dockerContext: ./server
     healthCheckPath: /health
-    autoDeployTrigger: checksPass
+    autoDeployTrigger: commit
+    buildFilter:
+      paths:
+        - server/**
+        - render.yaml
+      ignoredPaths:
+        - server/test/**
+        - evidence/**
+        - docs/**
+        - .github/**
     envVars:
       - key: ALLOW_NO_DATABASE
         value: "true"
