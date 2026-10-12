@@ -19,7 +19,7 @@ services:
         - .github/**
     envVars:
       - key: ALLOW_NO_DATABASE
-        value: "true"
+        sync: false
       - key: MONGODB_DB
         value: clinicdesk
       - key: MONGODB_URI
