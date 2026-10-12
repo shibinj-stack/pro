@@ -5,9 +5,9 @@
 ## Repository and verification
 - Repository: https://github.com/shibinj-stack/pro
 - Branch tested by GitHub Actions: main
-- GitHub workflow commit: ec23fd82c619a58127e87ed3ae1073ae962294de
-- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38231417293
-- Live health check time (UTC): 2026-10-12T09:41:10Z
+- GitHub workflow commit: cded707f64339579cec9904640e468ea12240a59
+- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38231502044
+- Live health check time (UTC): 2026-10-12T09:41:50Z
 - HTTP status from /health: 200
 - Verification note: HTTP 200; application reports healthy and supplies Render service/commit metadata.
 
@@ -16,7 +16,7 @@
 - Render service ID: srv-db698s8473hc73dkp5vg
 - Render public URL: https://clinicdesk-api-demo.onrender.com
 - Render deployed branch: main
-- Render deployed commit SHA: 9c647ccf3fb6f443267f01b6e8f1505488bf70a8
+- Render deployed commit SHA: cded707f64339579cec9904640e468ea12240a59
 - Blueprint-declared Render region: Oregon (oregon)
 - Deployment identity: full running Git commit SHA above, returned by the live Render service.
 - Provider-specific Render deploy-event ID and exact event start/finish times are not returned by the public health endpoint. The timestamped live verification above records when the running revision was checked; use Render Events for provider-only event fields if specifically required.
@@ -33,7 +33,7 @@
 
 ## Exact health response
  ```json
-{"status":"ok","service":"clinicdesk-api","database":"not_configured","timestamp":"2026-10-12T09:41:10.622Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"9c647ccf3fb6f443267f01b6e8f1505488bf70a8"}}
+{"status":"ok","service":"clinicdesk-api","database":"not_configured","timestamp":"2026-10-12T09:41:50.058Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"cded707f64339579cec9904640e468ea12240a59"}}
  ```
 
 Secrets are intentionally excluded.
