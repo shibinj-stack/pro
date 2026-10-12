@@ -94,7 +94,6 @@ jobs:
           MANUAL_BACKEND_URL: ${{ inputs.backend_url }}
           DEPLOYMENT_HINT: ${{ inputs.deployment_id }}
           IMAGE_REF: ghcr.io/${{ github.repository_owner }}/clinicdesk-api-demo:${{ github.sha }}
-          IMAGE_DIGEST: ${{ env.IMAGE_DIGEST }}
         run: |
           set -u
           BASE_URL="${MANUAL_BACKEND_URL:-${BACKEND_URL:-https://clinicdesk-api-demo.onrender.com}}"
@@ -157,6 +156,13 @@ jobs:
           done
 
           CHECKED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          FINAL_DATABASE_STATE="$(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
+          case "$FINAL_DATABASE_STATE" in
+            connected) MONGO_URI_STATUS="configured in Render and connected (secret value intentionally redacted)" ;;
+            disconnected) MONGO_URI_STATUS="present/attempted but MongoDB connection failed; verify URI, database user, and Atlas network access (value redacted)" ;;
+            not_configured) MONGO_URI_STATUS="not configured in Render; add the actual connection string as the MONGODB_URI secret (no value committed)" ;;
+            *) MONGO_URI_STATUS="state not confirmed by the live health response (value redacted)" ;;
+          esac
           if [ -z "$PROVISION_STATE_OBSERVED_AT" ]; then PROVISION_STATE_OBSERVED_AT="$CHECKED_AT"; fi
           if [ -z "$DEPLOYED_REVISION_OBSERVED_AT" ]; then DEPLOYED_REVISION_OBSERVED_AT="$CHECKED_AT"; fi
           {
@@ -477,7 +483,7 @@ jobs:
           - Blueprint/host environment values audited (UTC): $HOST_CONFIG_AUDIT_AT.
           - ALLOW_NO_DATABASE=true (database-free smoke mode, set by root render.yaml).
           - MONGODB_DB=clinicdesk (set by root render.yaml).
-          - MONGODB_URI is not configured in the committed Blueprint; the running endpoint reports database not_configured.
+          - MONGODB_URI is declared in render.yaml with sync: false and must be configured as a secret in the Render dashboard. Live database state: $FINAL_DATABASE_STATE. $MONGO_URI_STATUS.
           - CORS_ORIGIN is not set in the committed Blueprint. Independent dashboard overrides are not inferred.
           - No secret values are recorded.
 
