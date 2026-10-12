@@ -48,14 +48,15 @@ jobs:
           - Render Blueprint configuration
           - GitHub Actions workflow for tests, image build, live health verification, and evidence generation
           - Deployment instructions
-          - Genuine health-check and deployment evidence committed from the live Render endpoint
+          - Genuine live health-check response and deployment record in evidence/health-check.txt and evidence/deployment.md
+- Safe host/provider environment record in evidence/host-environment.md
 
           ## Last verified results at packaging time
           - API tests: 3 passed, 0 failed
           - Docker image build: passed
           - Live /health response: HTTP 200
           - Health payload currently reports database = not_configured; this is a demo smoke deployment and does not prove MongoDB connectivity.
-          - Latest known live-verification workflow: https://github.com/shibinj-stack/pro/actions/runs/38222365489
+          - Latest known successful live-verification workflow: https://github.com/shibinj-stack/pro/actions/runs/38227244715
 
           ## Scope warning
           This repository is a minimal deployment demo, not the user's original full ClinicDesk MEAN stack app. Submit it only if this demo is the project intended for this AxReview task. Do not present it as the original full application.
@@ -64,7 +65,7 @@ jobs:
           A successful CI run and health check are supporting evidence, not a guarantee of AxReview approval. Review any additional evaluator feedback and keep all deployment facts genuine.
           EOF
 
-          ZIP_PATH="$RUNNER_TEMP/clinicdesk-week22-task03-axreview-submission.zip"
+          ZIP_PATH="$RUNNER_TEMP/clinicdesk-week22-task03-axreview-corrected.zip"
           cd "$GITHUB_WORKSPACE"
           zip -qr "$ZIP_PATH" . -x './.git/*' '*/.git/*' './node_modules/*' '*/node_modules/*'
           echo "Created $ZIP_PATH"
