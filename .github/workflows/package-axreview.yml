@@ -42,7 +42,7 @@ jobs:
           HEALTH_RESULT="$(sed -n 's/^Verification result: //p' "$HEALTH_FILE" | head -n 1)"
           HTTP_STATUS="$(sed -n 's/^HTTP status: //p' "$HEALTH_FILE" | head -n 1)"
           DB_STATE="$(printf '%s' "$HEALTH_BODY" | jq -r '.database // "NOT_RETURNED"' 2>/dev/null || echo NOT_RETURNED)"
-          DB_URI_CONFIGURED="$(printf '%s' "$HEALTH_BODY" | jq -r '.databaseUriConfigured // "NOT_RETURNED"' 2>/dev/null || echo NOT_RETURNED)"
+          DB_URI_CONFIGURED="$(printf '%s' "$HEALTH_BODY" | jq -r 'if has("databaseUriConfigured") then .databaseUriConfigured else "NOT_RETURNED" end' 2>/dev/null || echo NOT_RETURNED)"
 
           cat > AXREVIEW-SUBMISSION-NOTES.md <<EOF
           # AxReview submission notes
