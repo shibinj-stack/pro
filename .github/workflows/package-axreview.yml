@@ -49,7 +49,7 @@ jobs:
           - GitHub Actions workflow for tests, image build, live health verification, and evidence generation
           - Deployment instructions
           - Genuine live health-check response and deployment record in evidence/health-check.txt and evidence/deployment.md
-- Safe host/provider environment record in evidence/host-environment.md
+          - Safe host/provider environment record in evidence/host-environment.md
 
           ## Last verified results at packaging time
           - API tests: 3 passed, 0 failed
@@ -75,6 +75,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: clinicdesk-week22-task03-axreview-submission
-          path: ${{ runner.temp }}/clinicdesk-week22-task03-axreview-submission.zip
+          path: ${{ runner.temp }}/clinicdesk-week22-task03-axreview-corrected.zip
           if-no-files-found: error
           retention-days: 30
