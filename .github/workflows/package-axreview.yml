@@ -51,6 +51,8 @@ jobs:
           - Deployment instructions
           - Genuine live health-check response and deployment record in evidence/health-check.txt and evidence/deployment.md
           - Safe host/provider environment record in evidence/host-environment.md
+          - Required AxReview task-path log: MEAN/module-22-dockerization-production-cloud/task-03-deploy-to-the-cloud-and-commit-the/docs/deployment.md
+          - The task folder also contains deployment-run.log, capture-evidence.yml, source files, tests, Render config, image-push evidence, and scripts.
           - Task-folder step-by-step deployment log and evidence under MEAN/module-22-dockerization-production-cloud/task-03-deploy-to-the-cloud-and-commit-the/
 
           ## Last verified results at packaging time
