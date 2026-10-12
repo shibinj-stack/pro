@@ -1,6 +1,6 @@
 # Week 22 Task 03 — Deploy to the Cloud and Commit the Evidence
 
-This folder contains the step-by-step deployment log, verified health-check response, service identity, host environment record, versioned image push record, source and test files, and Render configuration snapshot.
+This folder contains the step-by-step deployment log, actual health-check response, service identity, host environment record, versioned image push record, source and test files, and Render configuration snapshot.
 
 ## Key files
 - docs/deployment.md: ordered build, push, provision, configure, deploy, and live verification log.
