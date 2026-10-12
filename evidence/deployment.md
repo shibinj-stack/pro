@@ -5,9 +5,9 @@
 ## Repository and verification
 - Repository: https://github.com/shibinj-stack/pro
 - Branch tested by GitHub Actions: main
-- GitHub workflow commit: ddab8072ab2baa02a16bb0ab29f6dc309f183f97
-- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38227692541
-- Live health check time (UTC): 2026-10-12T09:06:23Z
+- GitHub workflow commit: f9ea1732eb3cff3b52ab52acbc2a39559c07d4dd
+- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38227798793
+- Live health check time (UTC): 2026-10-12T09:07:21Z
 - HTTP status from /health: 200
 - Verification note: HTTP 200; application reports healthy and supplies Render service/commit metadata.
 
@@ -33,7 +33,7 @@
 
 ## Exact health response
  ```json
-{"status":"ok","service":"clinicdesk-api","database":"not_configured","timestamp":"2026-10-12T09:06:23.236Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"9c647ccf3fb6f443267f01b6e8f1505488bf70a8"}}
+{"status":"ok","service":"clinicdesk-api","database":"not_configured","timestamp":"2026-10-12T09:07:21.354Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"9c647ccf3fb6f443267f01b6e8f1505488bf70a8"}}
  ```
 
 Secrets are intentionally excluded.
