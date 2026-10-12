@@ -1,11 +1,13 @@
 {
-  "name": "clinicdesk-api",
+  "name": "clinicdesk-week22-task03-deployment",
   "version": "1.0.0",
   "private": true,
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "node --test"
+    "test": "node --test",
+    "check-evidence": "node scripts/generate-deployment-md.js",
+    "capture-health": "sh scripts/ci-capture.sh"
   },
   "dependencies": {
     "cors": "^2.8.5",
