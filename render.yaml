@@ -22,3 +22,5 @@ services:
         value: "true"
       - key: MONGODB_DB
         value: clinicdesk
+      - key: MONGODB_URI
+        sync: false
