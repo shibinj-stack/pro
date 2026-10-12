@@ -17,12 +17,12 @@
 - Docker build context: server/.
 - Dockerfile: server/Dockerfile.
 - Result in this workflow run: API tests passed and the Docker image build completed successfully.
-- Build/run details: https://github.com/shibinj-stack/pro/actions/runs/38229785519
+- Build/run details: https://github.com/shibinj-stack/pro/actions/runs/38229978238
 
 ## 2. Push the versioned container image
 - Registry: GitHub Container Registry (ghcr.io).
-- Pushed image reference: ghcr.io/shibinj-stack/clinicdesk-api-demo:b82ceab8d4869fc85298886103285101992a122a
-- Image digest: sha256:f289e7f305b18c21857d864ba95288d9d8d0017674c44dba0253255d807f77b8
+- Pushed image reference: ghcr.io/shibinj-stack/clinicdesk-api-demo:7920d2c1a23c5849d94c21f3b7ae344883e27c7f
+- Image digest: sha256:e7ddfd7352d4273b817469eab69359cf06712e6f9094b8c853d7c3b8a30c805b
 - The GHCR publish step completed successfully in the linked workflow run.
 - Deployment relationship: the existing Render service is configured with runtime=docker in render.yaml. Render builds from the repository's Dockerfile; this log does not falsely claim that Render pulled the separate GHCR image.
 
@@ -49,14 +49,14 @@
 - The exact provider deployment event start/finish times are not exposed by the public health endpoint. Use the Render Deploys/Events panel for provider-specific event timestamps if the evaluator requires them.
 
 ## 6. Verify the live deployment
-- Verification time (UTC): 2026-10-12T09:26:00Z
+- Verification time (UTC): 2026-10-12T09:27:51Z
 - Endpoint requested: https://clinicdesk-api-demo.onrender.com/health
 - HTTP response status: 200
 - Health verification result: LIVE ENDPOINT VERIFIED
 - Response body and Render identity metadata: ../evidence/health-check.txt
 - Host/service environment record: ../evidence/host-environment.md
 - Deployment evidence: ../evidence/deployment.md
-- Verification workflow: https://github.com/shibinj-stack/pro/actions/runs/38229785519
+- Verification workflow: https://github.com/shibinj-stack/pro/actions/runs/38229978238
 
 ## Result and qualification
-The live API returned HTTP 200 and supplied Render service identity, branch, and deployed commit metadata at 2026-10-12T09:26:00Z. The app is in database-free smoke-test mode (database not_configured); this confirms API reachability, not MongoDB connectivity. The API source in this repository is a minimal deployment demo, not the original full ClinicDesk MEAN application.
+The live API returned HTTP 200 and supplied Render service identity, branch, and deployed commit metadata at 2026-10-12T09:27:51Z. The app is in database-free smoke-test mode (database not_configured); this confirms API reachability, not MongoDB connectivity. The API source in this repository is a minimal deployment demo, not the original full ClinicDesk MEAN application.
