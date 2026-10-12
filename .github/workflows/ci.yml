@@ -142,6 +142,12 @@ jobs:
             if [ -n "$LIVE_COMMIT" ] && [ -z "$DEPLOYED_REVISION_OBSERVED_AT" ]; then
               DEPLOYED_REVISION_OBSERVED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             fi
+            if [ "$DATABASE_STATE" = "not_configured" ] && [ -n "$SERVICE_NAME" ] && [ -n "$SERVICE_ID" ] && [ -n "$LIVE_COMMIT" ]; then
+              VERIFIED="false"
+              REASON="Render service responded with database=not_configured. Set MONGODB_URI as a Render secret and ALLOW_NO_DATABASE=false, then redeploy."
+              break
+            fi
+
             if [ "$STATUS" = "200" ] && jq -e '.status == "ok" and .render != null' "$BODY_FILE" >/dev/null 2>&1 && [ -n "$SERVICE_NAME" ] && [ -n "$SERVICE_ID" ] && [ -n "$LIVE_URL" ] && [ -n "$LIVE_COMMIT" ]; then
               if [ "$DATABASE_STATE" != "connected" ]; then
                 VERIFIED="false"
@@ -227,9 +233,9 @@ jobs:
             echo "## Host environment values"
             echo "- Provider: Render"
             echo "- Service type: Docker Web Service"
-            echo "- ALLOW_NO_DATABASE=true (Blueprint setting for database-free smoke test; this does not prove MongoDB connectivity)"
+            echo "- ALLOW_NO_DATABASE runtime value: $ALLOW_NO_DATABASE_VALUE (full deployment verification requires database=connected)"
             echo "- MONGODB_DB=clinicdesk (Blueprint setting)"
-            echo "- MONGODB_URI is declared with sync: false. Runtime configured flag: $MONGODB_URI_CONFIGURED; connection state: $FINAL_DATABASE_STATE; $MONGO_URI_STATUS"
+            echo "- MONGODB_URI runtime configured flag: $MONGODB_URI_CONFIGURED; connection state: $FINAL_DATABASE_STATE; $MONGO_URI_STATUS"
             echo "- CORS_ORIGIN: not set in the committed Blueprint; separate dashboard overrides are not inferred"
             echo "- Render-injected metadata verified live: service name, service ID, external URL, Git branch, and full deployed Git commit SHA"
             echo
