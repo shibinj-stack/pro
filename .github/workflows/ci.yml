@@ -51,6 +51,15 @@ jobs:
           npm test
           echo "API_TESTS_COMPLETED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
 
+      - name: Build versioned Docker image
+        env:
+          LOCAL_IMAGE: clinicdesk-api:${{ github.sha }}
+        run: |
+          set -euo pipefail
+          echo "IMAGE_BUILD_STARTED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+          docker build -f server/Dockerfile -t "$LOCAL_IMAGE" server
+          echo "IMAGE_BUILD_COMPLETED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -58,20 +67,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Record versioned image build/push start
-        run: echo "IMAGE_BUILD_PUSH_STARTED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
-
-      - name: Build and push versioned Docker image
-        id: build-push
-        uses: docker/build-push-action@v6
-        with:
-          context: ./server
-          file: ./server/Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.repository_owner }}/clinicdesk-api-demo:${{ github.sha }}
-
-      - name: Record versioned image build/push completion
-        run: echo "IMAGE_BUILD_PUSH_COMPLETED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+      - name: Push versioned Docker image
+        env:
+          LOCAL_IMAGE: clinicdesk-api:${{ github.sha }}
+          IMAGE_REF: ghcr.io/${{ github.repository_owner }}/clinicdesk-api-demo:${{ github.sha }}
+        run: |
+          set -euo pipefail
+          echo "IMAGE_PUSH_STARTED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+          docker tag "$LOCAL_IMAGE" "$IMAGE_REF"
+          PUSH_LOG="$RUNNER_TEMP/docker-push.log"
+          docker push "$IMAGE_REF" 2>&1 | tee "$PUSH_LOG"
+          IMAGE_DIGEST="$(grep -oE 'sha256:[0-9a-f]{64}' "$PUSH_LOG" | tail -n 1)"
+          if [ -z "$IMAGE_DIGEST" ]; then
+            echo "Docker push output did not include an image digest."
+            exit 1
+          fi
+          echo "IMAGE_REF=$IMAGE_REF" >> "$GITHUB_ENV"
+          echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> "$GITHUB_ENV"
+          echo "IMAGE_PUSH_COMPLETED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
 
       - name: Verify live Render service and capture actual evidence
         id: healthcheck
@@ -81,7 +94,7 @@ jobs:
           MANUAL_BACKEND_URL: ${{ inputs.backend_url }}
           DEPLOYMENT_HINT: ${{ inputs.deployment_id }}
           IMAGE_REF: ghcr.io/${{ github.repository_owner }}/clinicdesk-api-demo:${{ github.sha }}
-          IMAGE_DIGEST: ${{ steps.build-push.outputs.digest }}
+          IMAGE_DIGEST: ${{ env.IMAGE_DIGEST }}
         run: |
           set -u
           BASE_URL="${MANUAL_BACKEND_URL:-${BACKEND_URL:-https://clinicdesk-api-demo.onrender.com}}"
@@ -251,7 +264,10 @@ jobs:
             echo "- Image tag: $IMAGE_REF"
             echo "- Image digest reported by build-push action: ${IMAGE_DIGEST:-NOT_RETURNED}"
             echo "- Registry: GitHub Container Registry (ghcr.io)"
-            echo "- Image build/push step: completed successfully before this health-check step"
+            echo "- Docker build started (UTC): ${IMAGE_BUILD_STARTED_AT:-NOT_RETURNED}"
+            echo "- Docker build completed (UTC): ${IMAGE_BUILD_COMPLETED_AT:-NOT_RETURNED}"
+            echo "- Registry push started (UTC): ${IMAGE_PUSH_STARTED_AT:-NOT_RETURNED}"
+            echo "- Registry push completed (UTC): ${IMAGE_PUSH_COMPLETED_AT:-NOT_RETURNED}"
             echo "- Important: the running Render service is Blueprint-managed with runtime=docker, so it builds from the repository Dockerfile. The GHCR image above is a separately published CI artifact; it is not claimed to be the image pulled by the existing Render service."
             echo
             echo "Secrets are excluded."
@@ -287,8 +303,10 @@ jobs:
           - Build/run details: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
 
           ## 2. Push the versioned container image
-          - Image build/push started (UTC): ${IMAGE_BUILD_PUSH_STARTED_AT:-NOT_RECORDED}
-          - Image build/push completed (UTC): ${IMAGE_BUILD_PUSH_COMPLETED_AT:-NOT_RECORDED}
+          - Docker build started (UTC): ${IMAGE_BUILD_STARTED_AT:-NOT_RECORDED}
+          - Docker build completed (UTC): ${IMAGE_BUILD_COMPLETED_AT:-NOT_RECORDED}
+          - Registry push started (UTC): ${IMAGE_PUSH_STARTED_AT:-NOT_RECORDED}
+          - Registry push completed (UTC): ${IMAGE_PUSH_COMPLETED_AT:-NOT_RECORDED}
           - Registry: GitHub Container Registry (ghcr.io).
           - Pushed image reference: $IMAGE_REF
           - Image digest: ${IMAGE_DIGEST:-NOT_RETURNED}
@@ -392,8 +410,10 @@ jobs:
             dependency_install_completed: "${DEPENDENCIES_COMPLETED_AT:-NOT_RECORDED}"
             api_tests_started: "${API_TESTS_STARTED_AT:-NOT_RECORDED}"
             api_tests_completed: "${API_TESTS_COMPLETED_AT:-NOT_RECORDED}"
-            image_build_push_started: "${IMAGE_BUILD_PUSH_STARTED_AT:-NOT_RECORDED}"
-            image_build_push_completed: "${IMAGE_BUILD_PUSH_COMPLETED_AT:-NOT_RECORDED}"
+            image_build_started: "${IMAGE_BUILD_STARTED_AT:-NOT_RECORDED}"
+            image_build_completed: "${IMAGE_BUILD_COMPLETED_AT:-NOT_RECORDED}"
+            image_push_started: "${IMAGE_PUSH_STARTED_AT:-NOT_RECORDED}"
+            image_push_completed: "${IMAGE_PUSH_COMPLETED_AT:-NOT_RECORDED}"
             provision_state_verified: "$PROVISION_STATE_OBSERVED_AT"
             host_configuration_audited: "$HOST_CONFIG_AUDIT_AT"
             deployed_revision_observed: "$DEPLOYED_REVISION_OBSERVED_AT"
@@ -434,8 +454,10 @@ jobs:
           - Docker image build: succeeded in this run.
 
           STEP 2 — PUSH VERSIONED IMAGE
-          - Image build/push start (UTC): ${IMAGE_BUILD_PUSH_STARTED_AT:-NOT_RECORDED}
-          - Image build/push finish (UTC): ${IMAGE_BUILD_PUSH_COMPLETED_AT:-NOT_RECORDED}
+          - Docker build start (UTC): ${IMAGE_BUILD_STARTED_AT:-NOT_RECORDED}
+          - Docker build finish (UTC): ${IMAGE_BUILD_COMPLETED_AT:-NOT_RECORDED}
+          - Registry push start (UTC): ${IMAGE_PUSH_STARTED_AT:-NOT_RECORDED}
+          - Registry push finish (UTC): ${IMAGE_PUSH_COMPLETED_AT:-NOT_RECORDED}
           - Image reference: $IMAGE_REF
           - Image digest: ${IMAGE_DIGEST:-NOT_RETURNED}
           - Registry push: GitHub Container Registry (ghcr.io), completed successfully in this run.
