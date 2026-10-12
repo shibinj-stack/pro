@@ -6,7 +6,7 @@
 - Service ID: srv-db698s8473hc73dkp5vg
 - Public URL: https://clinicdesk-api-demo.onrender.com
 - Region configured by render.yaml: Oregon (oregon)
-- Verification timestamp (UTC): 2026-10-12T10:18:40Z
+- Verification timestamp (UTC): 2026-10-12T10:20:32Z
 - Live deployed branch: main
 - Live deployed commit SHA: 67c61a264ff8a7aac9fa2d074a58a2149e26863e
 - Health endpoint HTTP status: 200
