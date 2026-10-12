@@ -248,9 +248,9 @@ jobs:
             echo "- Database status from live health payload: $(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
             echo
             echo "## Application environment values set in Render Blueprint"
-            echo "- ALLOW_NO_DATABASE=true (demo smoke-test mode; permits health HTTP 200 without MongoDB)"
+            echo "- ALLOW_NO_DATABASE runtime value: $ALLOW_NO_DATABASE_VALUE (the workflow accepts a full pass only when database=connected)"
             echo "- MONGODB_DB=clinicdesk"
-            echo "- MONGODB_URI is a non-synced secret variable that must be configured in Render; secret value excluded. Live database state: $(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
+            echo "- MONGODB_URI runtime configured flag: $MONGODB_URI_CONFIGURED; $MONGO_URI_STATUS"
             echo "- CORS_ORIGIN=not set in the committed Blueprint; application fallback behavior applies unless a dashboard override exists"
             echo
             echo "## Render runtime metadata observed through the live /health response"
@@ -310,18 +310,23 @@ jobs:
           - Result in this workflow run: API tests passed and the Docker image build completed successfully.
           - Build/run details: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
 
-          ## 2. Push the versioned container image
+          ## 2. Build the versioned container image
           - Docker build started (UTC): ${IMAGE_BUILD_STARTED_AT:-NOT_RECORDED}
           - Docker build completed (UTC): ${IMAGE_BUILD_COMPLETED_AT:-NOT_RECORDED}
+          - Command: docker build -f server/Dockerfile -t clinicdesk-api:$GITHUB_SHA server.
+          - Result: Docker image build completed successfully in this workflow run.
+          - Build/run details: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+
+          ## 3. Push the versioned container image
           - Registry push started (UTC): ${IMAGE_PUSH_STARTED_AT:-NOT_RECORDED}
           - Registry push completed (UTC): ${IMAGE_PUSH_COMPLETED_AT:-NOT_RECORDED}
           - Registry: GitHub Container Registry (ghcr.io).
           - Pushed image reference: $IMAGE_REF
           - Image digest: ${IMAGE_DIGEST:-NOT_RETURNED}
-          - The GHCR publish step completed successfully in the linked workflow run.
-          - Deployment relationship: the existing Render service is configured with runtime=docker in render.yaml. Render builds from the repository's Dockerfile; this log does not falsely claim that Render pulled the separate GHCR image.
+          - The registry push completed successfully in the linked workflow run.
+          - Deployment relationship: the existing Render service is configured with runtime=docker in render.yaml. Render builds from the repository's Dockerfile; the GHCR image is a separate CI artifact and is not claimed as the active Render image.
 
-          ## 3. Provision the cloud service
+          ## 4. Provision the cloud service
           - Provisioned service state/identity verified (UTC): $PROVISION_STATE_OBSERVED_AT. This is when the live service was confirmed by the health endpoint, not a fabricated historical create-event time.
           - Render Blueprint: repository-root render.yaml.
           - Render created the web service clinicdesk-api-demo.
@@ -330,16 +335,15 @@ jobs:
           - Blueprint-selected region: Oregon (oregon).
           - Render dashboard showed the service as Live; the supplied Deploys screenshot showed a 30.2 second duration for the deployment row running commit 9c647cc.
 
-          ## 4. Configure host environment
+          ## 5. Configure host environment
           - Blueprint and returned host-configuration values audited (UTC): $HOST_CONFIG_AUDIT_AT.
           - ALLOW_NO_DATABASE runtime value reported by /health: $ALLOW_NO_DATABASE_VALUE. CI still requires database=connected, so a smoke-mode response is not accepted as complete.
           - MONGODB_DB=clinicdesk is configured by render.yaml.
-          - MONGODB_URI is declared as a non-synced Render secret (sync: false). Configure a real Atlas connection string in the Render dashboard; its value is never committed or logged.
-          - Live database state observed during this run: $(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED).
+          - MONGODB_URI has a non-synced secret entry (sync: false). Runtime configured flag: $MONGODB_URI_CONFIGURED; current state: $FINAL_DATABASE_STATE; $MONGO_URI_STATUS.
           - CORS_ORIGIN is not set in the committed Blueprint; any independent dashboard override is not inferred.
           - No secret values are written to source control or this log.
 
-          ## 5. Deploy the application
+          ## 6. Deploy the application
           - Active deployed revision and branch observed (UTC): $DEPLOYED_REVISION_OBSERVED_AT.
           - Render deployed the Git source revision reported by the running service: $LIVE_COMMIT.
           - The deployed branch reported by Render: $LIVE_BRANCH.
@@ -347,7 +351,7 @@ jobs:
           - Render's current configuration builds from server/Dockerfile on the selected Git commit. The GHCR image above is retained as a versioned CI artifact, not misidentified as the active Render image.
           - The exact provider deployment event start/finish times are not exposed by the public health endpoint. Use the Render Deploys/Events panel for provider-specific event timestamps if the evaluator requires them.
 
-          ## 6. Verify the live deployment
+          ## 7. Verify the live deployment
           - Verification completed (UTC): $CHECKED_AT
           - Endpoint requested: $URL
           - HTTP response status: $STATUS
@@ -358,7 +362,7 @@ jobs:
           - Verification workflow: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
 
           ## Result and qualification
-          The live API returned HTTP $STATUS and supplied Render service identity, branch, and deployed commit metadata at $CHECKED_AT. The app is in database-free smoke-test mode (database not_configured); this confirms API reachability, not MongoDB connectivity. The API source in this repository is a minimal deployment demo, not the original full ClinicDesk MEAN application.
+          The live API returned HTTP $STATUS and supplied Render service identity, branch, and deployed commit metadata at $CHECKED_AT. MongoDB state: $FINAL_DATABASE_STATE; URI configured flag: $MONGODB_URI_CONFIGURED; $MONGO_URI_STATUS. This workflow records a full pass only when the database state is connected. The API source in this repository is a minimal deployment demo, not the original full ClinicDesk MEAN application.
           EOF
 
           cp evidence/deployment.md "$TASK_DIR/evidence/deployment.md"
@@ -434,11 +438,12 @@ jobs:
           image_digest: "${IMAGE_DIGEST:-NOT_RETURNED}"
           render_image_source: "Blueprint runtime=docker builds from repository Dockerfile; GHCR image is a separately published CI artifact."
           environment:
-            ALLOW_NO_DATABASE: "true"
+            ALLOW_NO_DATABASE: "$ALLOW_NO_DATABASE_VALUE"
             MONGODB_DB: "clinicdesk"
-            MONGODB_URI: "not configured; no secret value committed"
-            CORS_ORIGIN: "not set in committed Blueprint"
-          database_state: "$(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
+            MONGODB_URI_configured: "$MONGODB_URI_CONFIGURED"
+            MONGODB_URI_status: "$MONGO_URI_STATUS"
+            CORS_ORIGIN: "not set in committed Blueprint unless overridden in dashboard"
+          database_state: "$FINAL_DATABASE_STATE"
           deployment_event:
             render_event_id: "Not available from public health response; verify in Render Events if required"
             timestamp: "health verification time is recorded above; this is not the provider deploy-event timestamp"
@@ -461,9 +466,13 @@ jobs:
           - API tests: passed in this run.
           - Docker image build: succeeded in this run.
 
-          STEP 2 — PUSH VERSIONED IMAGE
+          STEP 2 — BUILD CONTAINER IMAGE
           - Docker build start (UTC): ${IMAGE_BUILD_STARTED_AT:-NOT_RECORDED}
           - Docker build finish (UTC): ${IMAGE_BUILD_COMPLETED_AT:-NOT_RECORDED}
+          - Build command: docker build -f server/Dockerfile -t clinicdesk-api:$GITHUB_SHA server.
+          - Build result: successful in this workflow run.
+
+          STEP 3 — PUSH VERSIONED IMAGE
           - Registry push start (UTC): ${IMAGE_PUSH_STARTED_AT:-NOT_RECORDED}
           - Registry push finish (UTC): ${IMAGE_PUSH_COMPLETED_AT:-NOT_RECORDED}
           - Image reference: $IMAGE_REF
@@ -471,7 +480,7 @@ jobs:
           - Registry push: GitHub Container Registry (ghcr.io), completed successfully in this run.
           - Note: this GHCR image is a versioned CI artifact. The current Render service uses runtime=docker and builds from repository source; the log does not claim Render pulled the GHCR image.
 
-          STEP 3 — PROVISION SERVICE
+          STEP 4 — PROVISION SERVICE
           - Live service existence/identity confirmed (UTC): $PROVISION_STATE_OBSERVED_AT.
           - Provider: Render.
           - Blueprint resource: clinicdesk-api-demo.
@@ -481,7 +490,7 @@ jobs:
           - Dashboard state observed: Live.
           - Deploys screen provided for this service showed a 30.2-second duration on the deployed commit 9c647cc.
 
-          STEP 4 — CONFIGURE HOST ENVIRONMENT
+          STEP 5 — CONFIGURE HOST ENVIRONMENT
           - Blueprint/host environment values audited (UTC): $HOST_CONFIG_AUDIT_AT.
           - ALLOW_NO_DATABASE runtime value from /health: $ALLOW_NO_DATABASE_VALUE; CI rejects smoke-only verification.
           - MONGODB_DB=clinicdesk (set by root render.yaml).
@@ -489,7 +498,7 @@ jobs:
           - CORS_ORIGIN is not set in the committed Blueprint. Independent dashboard overrides are not inferred.
           - No secret values are recorded.
 
-          STEP 5 — DEPLOY
+          STEP 6 — DEPLOY
           - Running deployment revision observed (UTC): $DEPLOYED_REVISION_OBSERVED_AT.
           - Live public URL: ${LIVE_URL:-$BASE_URL}
           - Active deployed source branch: $LIVE_BRANCH.
@@ -497,7 +506,7 @@ jobs:
           - Render's current Blueprint runtime builds from server/Dockerfile on that source revision.
           - Provider-specific deploy-event ID and exact event start/finish timestamps are not returned by /health. The health-check time below is the timestamp of verification, not mislabelled as the deploy event time.
 
-          STEP 6 — VERIFY LIVE SERVICE
+          STEP 7 — VERIFY LIVE SERVICE
           - Check completion time (UTC): $CHECKED_AT.
           - Request: $URL
           - HTTP status: $STATUS.
@@ -576,7 +585,7 @@ jobs:
           const health = fs.readFileSync("evidence/health-check.txt", "utf8");
           const doc = fs.readFileSync("docs/deployment.md", "utf8");
           const runLog = fs.readFileSync("deployment-run.log", "utf8");
-          const requiredStages = ["1. Build and validate", "2. Push the versioned container image", "3. Provision the cloud service", "4. Configure host environment", "5. Deploy the application", "6. Verify the live deployment"];
+          const requiredStages = ["1. Build and validate", "2. Build the versioned container image", "3. Push the versioned container image", "4. Provision the cloud service", "5. Configure host environment", "6. Deploy the application", "7. Verify the live deployment"];
           const missingStages = requiredStages.filter((stage) => !doc.toLowerCase().includes(stage.toLowerCase()));
           if (missingStages.length) {
             console.error("Missing ordered deployment stages:", missingStages.join(", "));
@@ -605,8 +614,18 @@ jobs:
             console.error("Health evidence is missing a real URL, timestamp, HTTP status or response body.");
             process.exit(4);
           }
-          if (!/STEP 1 — BUILD AND TEST/.test(runLog) || !/STEP 6 — VERIFY LIVE SERVICE/.test(runLog)) {
-            console.error("Execution log is missing ordered stages.");
+          const requiredRunStages = [
+            "STEP 1 — BUILD AND TEST",
+            "STEP 2 — BUILD CONTAINER IMAGE",
+            "STEP 3 — PUSH VERSIONED IMAGE",
+            "STEP 4 — PROVISION SERVICE",
+            "STEP 5 — CONFIGURE HOST ENVIRONMENT",
+            "STEP 6 — DEPLOY",
+            "STEP 7 — VERIFY LIVE SERVICE"
+          ];
+          const missingRunStages = requiredRunStages.filter((stage) => !runLog.includes(stage));
+          if (missingRunStages.length) {
+            console.error("Execution log is missing ordered stages:", missingRunStages.join(", "));
             process.exit(5);
           }
           console.log("Ordered deployment log, stage timestamps and a real captured health response are present. The live database gate is evaluated separately.");
