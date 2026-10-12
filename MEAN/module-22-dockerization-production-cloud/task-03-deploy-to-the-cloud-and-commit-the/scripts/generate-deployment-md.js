@@ -17,7 +17,7 @@ if (missing.length) {
 const health = fs.readFileSync("evidence/health-check.txt", "utf8");
 const doc = fs.readFileSync("docs/deployment.md", "utf8");
 const runLog = fs.readFileSync("deployment-run.log", "utf8");
-const requiredStages = ["1. Build and validate", "2. Push the versioned container image", "3. Provision the cloud service", "4. Configure host environment", "5. Deploy the application", "6. Verify the live deployment"];
+const requiredStages = ["1. Build and validate", "2. Build the versioned container image", "3. Push the versioned container image", "4. Provision the cloud service", "5. Configure host environment", "6. Deploy the application", "7. Verify the live deployment"];
 const missingStages = requiredStages.filter((stage) => !doc.toLowerCase().includes(stage.toLowerCase()));
 if (missingStages.length) {
   console.error("Missing ordered deployment stages:", missingStages.join(", "));
@@ -46,8 +46,18 @@ if (!/Backend URL: https:\/\//.test(health) || !/Checked at \(UTC\): \d{4}-\d\d-
   console.error("Health evidence is missing a real URL, timestamp, HTTP status or response body.");
   process.exit(4);
 }
-if (!/STEP 1 — BUILD AND TEST/.test(runLog) || !/STEP 6 — VERIFY LIVE SERVICE/.test(runLog)) {
-  console.error("Execution log is missing ordered stages.");
+const requiredRunStages = [
+  "STEP 1 — BUILD AND TEST",
+  "STEP 2 — BUILD CONTAINER IMAGE",
+  "STEP 3 — PUSH VERSIONED IMAGE",
+  "STEP 4 — PROVISION SERVICE",
+  "STEP 5 — CONFIGURE HOST ENVIRONMENT",
+  "STEP 6 — DEPLOY",
+  "STEP 7 — VERIFY LIVE SERVICE"
+];
+const missingRunStages = requiredRunStages.filter((stage) => !runLog.includes(stage));
+if (missingRunStages.length) {
+  console.error("Execution log is missing ordered stages:", missingRunStages.join(", "));
   process.exit(5);
 }
 console.log("Ordered deployment log, stage timestamps and a real captured health response are present. The live database gate is evaluated separately.");
