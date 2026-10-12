@@ -42,19 +42,6 @@ jobs:
       - name: Build Docker image
         run: docker build -f server/Dockerfile -t clinicdesk-api:${{ github.sha }} server
 
-      - name: Trigger Render deploy hook (when configured)
-        if: github.event_name == 'push'
-        env:
-          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-        run: |
-          set -euo pipefail
-          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
-            echo "RENDER_DEPLOY_HOOK_URL is not configured; skipping deploy-hook trigger."
-            exit 0
-          fi
-          curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK_URL" -o /tmp/render-deploy-response.json
-          echo "Render accepted the deploy-hook request. Verify final status in the Render dashboard."
-
       - name: Check live deployment and record actual response
         if: github.event_name == 'workflow_dispatch' && inputs.backend_url != ''
         env:
