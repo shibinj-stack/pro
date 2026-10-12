@@ -531,6 +531,7 @@ jobs:
           - Service environment and identity is in evidence/host-environment.md.
           EOF
           cp "$TASK_DIR/docs/deployment.md" "$TASK_DIR/deployment.md"
+          cp docs/mongodb-setup.md "$TASK_DIR/mongodb-setup.md"
 
           cat > "$TASK_DIR/README.md" <<'README'
           # Week 22 Task 03 — Deploy to the Cloud and Commit the Evidence
@@ -547,6 +548,7 @@ jobs:
           - evidence/host-environment.md: provider, service, region and safe environment values.
           - evidence/image-push.md: image tag, digest and registry push evidence.
           - render.yaml: snapshot of the live source-based Blueprint.
+          - mongodb-setup.md: one-time Atlas/Render setup and automatic verification steps.
           - server/ and root-level Dockerfile/index.js/package.json/test/: source and test code.
 
           ## Important deployment distinctions
