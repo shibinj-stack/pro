@@ -6,7 +6,7 @@
 - Service ID: srv-db698s8473hc73dkp5vg
 - Public URL: https://clinicdesk-api-demo.onrender.com
 - Region configured by render.yaml: Oregon (oregon)
-- Verification timestamp (UTC): 2026-10-12T09:41:50Z
+- Verification timestamp (UTC): 2026-10-12T09:42:07Z
 - Live deployed branch: main
 - Live deployed commit SHA: cded707f64339579cec9904640e468ea12240a59
 - Health endpoint HTTP status: 200
@@ -15,7 +15,7 @@
 ## Application environment values set in Render Blueprint
 - ALLOW_NO_DATABASE=true (demo smoke-test mode; permits health HTTP 200 without MongoDB)
 - MONGODB_DB=clinicdesk
-- MONGODB_URI=not configured (no secret value is recorded; live health response reports database not_configured)
+- MONGODB_URI is a non-synced secret variable that must be configured in Render; secret value excluded. Live database state: not_configured
 - CORS_ORIGIN=not set in the committed Blueprint; application fallback behavior applies unless a dashboard override exists
 
 ## Render runtime metadata observed through the live /health response

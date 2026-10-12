@@ -1,15 +1,16 @@
 # Render Deployment Record
 
-**Result: LIVE ENDPOINT VERIFIED**
+**Result: VERIFICATION FAILED**
 
 ## Repository and verification
 - Repository: https://github.com/shibinj-stack/pro
 - Branch tested by GitHub Actions: main
-- GitHub workflow commit: cded707f64339579cec9904640e468ea12240a59
-- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38231502044
-- Live health check time (UTC): 2026-10-12T09:41:50Z
+- GitHub workflow commit: 198f6e12aa772bd07a95b90d0c2760c298292ef1
+- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38231521369
+- Live health check time (UTC): 2026-10-12T09:42:07Z
 - HTTP status from /health: 200
-- Verification note: HTTP 200; application reports healthy and supplies Render service/commit metadata.
+- Verification note: The endpoint returned HTTP 200, but MongoDB state is 'not_configured'. A database-free smoke response is not accepted as a full deployment pass.
+- MongoDB status from response: not_configured
 
 ## Actual Render metadata returned by the live service
 - Render service name: clinicdesk-api-demo
@@ -27,13 +28,13 @@
 - Service type: Docker Web Service
 - ALLOW_NO_DATABASE=true (Blueprint setting for database-free smoke test; this does not prove MongoDB connectivity)
 - MONGODB_DB=clinicdesk (Blueprint setting)
-- MONGODB_URI: not configured in the committed Blueprint; live payload reports database not_configured
+- MONGODB_URI is declared with sync: false and must be set as a secret in the Render dashboard; its value is never logged. Live database state: not_configured
 - CORS_ORIGIN: not set in the committed Blueprint; separate dashboard overrides are not inferred
 - Render-injected metadata verified live: service name, service ID, external URL, Git branch, and full deployed Git commit SHA
 
 ## Exact health response
  ```json
-{"status":"ok","service":"clinicdesk-api","database":"not_configured","timestamp":"2026-10-12T09:41:50.058Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"cded707f64339579cec9904640e468ea12240a59"}}
+{"status":"ok","service":"clinicdesk-api","database":"not_configured","timestamp":"2026-10-12T09:42:07.533Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"cded707f64339579cec9904640e468ea12240a59"}}
  ```
 
 Secrets are intentionally excluded.
