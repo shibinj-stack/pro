@@ -1,35 +1,35 @@
 ClinicDesk Week 22 Task 03 — Deployment Execution Log
 Repository: https://github.com/shibinj-stack/pro
 Branch: main
-GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38235653575
-Log generated at (UTC): 2026-10-12T10:20:32Z
+GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38235700575
+Log generated at (UTC): 2026-10-12T10:20:54Z
 
 STEP 1 — BUILD AND TEST
-- Dependency install start (UTC): 2026-10-12T10:20:11Z
-- Dependency install finish (UTC): 2026-10-12T10:20:14Z
-- API test start (UTC): 2026-10-12T10:20:14Z
-- API test finish (UTC): 2026-10-12T10:20:14Z
+- Dependency install start (UTC): 2026-10-12T10:20:35Z
+- Dependency install finish (UTC): 2026-10-12T10:20:38Z
+- API test start (UTC): 2026-10-12T10:20:38Z
+- API test finish (UTC): 2026-10-12T10:20:38Z
 - Dependencies installed from server/package.json.
 - API test command: npm test (working directory server/).
 - API tests: passed in this run.
 - Docker image build: succeeded in this run.
 
 STEP 2 — BUILD CONTAINER IMAGE
-- Docker build start (UTC): 2026-10-12T10:20:14Z
-- Docker build finish (UTC): 2026-10-12T10:20:27Z
-- Build command: docker build -f server/Dockerfile -t clinicdesk-api:7be8a9c4b95fe4f037effca104e8685a0aa12927 server.
+- Docker build start (UTC): 2026-10-12T10:20:38Z
+- Docker build finish (UTC): 2026-10-12T10:20:50Z
+- Build command: docker build -f server/Dockerfile -t clinicdesk-api:e080cfd33f57e900f47b0671acc4b8cd0af737db server.
 - Build result: successful in this workflow run.
 
 STEP 3 — PUSH VERSIONED IMAGE
-- Registry push start (UTC): 2026-10-12T10:20:27Z
-- Registry push finish (UTC): 2026-10-12T10:20:32Z
-- Image reference: ghcr.io/shibinj-stack/clinicdesk-api-demo:7be8a9c4b95fe4f037effca104e8685a0aa12927
-- Image digest: sha256:03aee33d70dbfd949976d122217109c5d4fb99363072c60f8be2668a94fc8262
+- Registry push start (UTC): 2026-10-12T10:20:50Z
+- Registry push finish (UTC): 2026-10-12T10:20:54Z
+- Image reference: ghcr.io/shibinj-stack/clinicdesk-api-demo:e080cfd33f57e900f47b0671acc4b8cd0af737db
+- Image digest: sha256:76e23ef13d789d20d26204de75e011af4d4e248369e744806203d6f38228aa34
 - Registry push: GitHub Container Registry (ghcr.io), completed successfully in this run.
 - Note: this GHCR image is a versioned CI artifact. The current Render service uses runtime=docker and builds from repository source; the log does not claim Render pulled the GHCR image.
 
 STEP 4 — PROVISION SERVICE
-- Live service existence/identity confirmed (UTC): 2026-10-12T10:20:32Z.
+- Live service existence/identity confirmed (UTC): 2026-10-12T10:20:54Z.
 - Provider: Render.
 - Blueprint resource: clinicdesk-api-demo.
 - Service ID: srv-db698s8473hc73dkp5vg.
@@ -39,7 +39,7 @@ STEP 4 — PROVISION SERVICE
 - Deploys screen provided for this service showed a 30.2-second duration on the deployed commit 9c647cc.
 
 STEP 5 — CONFIGURE HOST ENVIRONMENT
-- Blueprint/host environment values audited (UTC): 2026-10-12T10:20:32Z.
+- Blueprint/host environment values audited (UTC): 2026-10-12T10:20:54Z.
 - ALLOW_NO_DATABASE runtime value from /health: true; CI rejects smoke-only verification.
 - MONGODB_DB=clinicdesk (set by root render.yaml).
 - MONGODB_URI is declared in render.yaml with sync: false and must be configured as a secret in the Render dashboard. Runtime configured flag: false. Live database state: not_configured. not configured in Render; add the actual connection string as the MONGODB_URI secret (no value committed).
@@ -47,7 +47,7 @@ STEP 5 — CONFIGURE HOST ENVIRONMENT
 - No secret values are recorded.
 
 STEP 6 — DEPLOY
-- Running deployment revision observed (UTC): 2026-10-12T10:20:32Z.
+- Running deployment revision observed (UTC): 2026-10-12T10:20:54Z.
 - Live public URL: https://clinicdesk-api-demo.onrender.com
 - Active deployed source branch: main.
 - Active deployed commit SHA: 67c61a264ff8a7aac9fa2d074a58a2149e26863e.
@@ -55,7 +55,7 @@ STEP 6 — DEPLOY
 - Provider-specific deploy-event ID and exact event start/finish timestamps are not returned by /health. The health-check time below is the timestamp of verification, not mislabelled as the deploy event time.
 
 STEP 7 — VERIFY LIVE SERVICE
-- Check completion time (UTC): 2026-10-12T10:20:32Z.
+- Check completion time (UTC): 2026-10-12T10:20:54Z.
 - Request: https://clinicdesk-api-demo.onrender.com/health
 - HTTP status: 200.
 - Result: VERIFICATION FAILED.

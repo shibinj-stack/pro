@@ -12,6 +12,7 @@ This folder contains the step-by-step deployment log, verified health-check resp
 - evidence/host-environment.md: provider, service, region and safe environment values.
 - evidence/image-push.md: image tag, digest and registry push evidence.
 - render.yaml: snapshot of the live source-based Blueprint.
+- mongodb-setup.md: one-time Atlas/Render setup and automatic verification steps.
 - server/ and root-level Dockerfile/index.js/package.json/test/: source and test code.
 
 ## Important deployment distinctions
