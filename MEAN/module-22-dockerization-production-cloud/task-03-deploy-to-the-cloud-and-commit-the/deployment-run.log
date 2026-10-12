@@ -1,31 +1,31 @@
 ClinicDesk Week 22 Task 03 — Deployment Execution Log
 Repository: https://github.com/shibinj-stack/pro
 Branch: main
-GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38231672360
-Log generated at (UTC): 2026-10-12T09:43:24Z
+GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38231895453
+Log generated at (UTC): 2026-10-12T09:45:44Z
 
 STEP 1 — BUILD AND TEST
-- Dependency install start (UTC): 2026-10-12T09:43:08Z
-- Dependency install finish (UTC): 2026-10-12T09:43:11Z
-- API test start (UTC): 2026-10-12T09:43:11Z
-- API test finish (UTC): 2026-10-12T09:43:12Z
+- Dependency install start (UTC): 2026-10-12T09:45:17Z
+- Dependency install finish (UTC): 2026-10-12T09:45:22Z
+- API test start (UTC): 2026-10-12T09:45:22Z
+- API test finish (UTC): 2026-10-12T09:45:22Z
 - Dependencies installed from server/package.json.
 - API test command: npm test (working directory server/).
 - API tests: passed in this run.
 - Docker image build: succeeded in this run.
 
 STEP 2 — PUSH VERSIONED IMAGE
-- Docker build start (UTC): 2026-10-12T09:43:12Z
-- Docker build finish (UTC): 2026-10-12T09:43:19Z
-- Registry push start (UTC): 2026-10-12T09:43:19Z
-- Registry push finish (UTC): 2026-10-12T09:43:23Z
-- Image reference: ghcr.io/shibinj-stack/clinicdesk-api-demo:642bceb93735bf895f4174020cc0c1f1c337ac44
-- Image digest: sha256:b66f8e587d8fcfbcd3886e0bc80a0c8c0819bf16acf909b2c31a8aaa5ddb0931
+- Docker build start (UTC): 2026-10-12T09:45:22Z
+- Docker build finish (UTC): 2026-10-12T09:45:37Z
+- Registry push start (UTC): 2026-10-12T09:45:37Z
+- Registry push finish (UTC): 2026-10-12T09:45:43Z
+- Image reference: ghcr.io/shibinj-stack/clinicdesk-api-demo:b501a3a9856b61ab0130e494f396f873e882cbbd
+- Image digest: sha256:88c86ed68c279ac9617d6e54605f5b7d325f6a8cca0f50568bdd4fd5a4b2d98c
 - Registry push: GitHub Container Registry (ghcr.io), completed successfully in this run.
 - Note: this GHCR image is a versioned CI artifact. The current Render service uses runtime=docker and builds from repository source; the log does not claim Render pulled the GHCR image.
 
 STEP 3 — PROVISION SERVICE
-- Live service existence/identity confirmed (UTC): 2026-10-12T09:43:24Z.
+- Live service existence/identity confirmed (UTC): 2026-10-12T09:45:44Z.
 - Provider: Render.
 - Blueprint resource: clinicdesk-api-demo.
 - Service ID: srv-db698s8473hc73dkp5vg.
@@ -35,7 +35,7 @@ STEP 3 — PROVISION SERVICE
 - Deploys screen provided for this service showed a 30.2-second duration on the deployed commit 9c647cc.
 
 STEP 4 — CONFIGURE HOST ENVIRONMENT
-- Blueprint/host environment values audited (UTC): 2026-10-12T09:43:23Z.
+- Blueprint/host environment values audited (UTC): 2026-10-12T09:45:43Z.
 - ALLOW_NO_DATABASE=true (database-free smoke mode, set by root render.yaml).
 - MONGODB_DB=clinicdesk (set by root render.yaml).
 - MONGODB_URI is declared in render.yaml with sync: false and must be configured as a secret in the Render dashboard. Live database state: not_configured. not configured in Render; add the actual connection string as the MONGODB_URI secret (no value committed).
@@ -43,15 +43,15 @@ STEP 4 — CONFIGURE HOST ENVIRONMENT
 - No secret values are recorded.
 
 STEP 5 — DEPLOY
-- Running deployment revision observed (UTC): 2026-10-12T09:43:24Z.
+- Running deployment revision observed (UTC): 2026-10-12T09:45:44Z.
 - Live public URL: https://clinicdesk-api-demo.onrender.com
 - Active deployed source branch: main.
-- Active deployed commit SHA: cded707f64339579cec9904640e468ea12240a59.
+- Active deployed commit SHA: b501a3a9856b61ab0130e494f396f873e882cbbd.
 - Render's current Blueprint runtime builds from server/Dockerfile on that source revision.
 - Provider-specific deploy-event ID and exact event start/finish timestamps are not returned by /health. The health-check time below is the timestamp of verification, not mislabelled as the deploy event time.
 
 STEP 6 — VERIFY LIVE SERVICE
-- Check completion time (UTC): 2026-10-12T09:43:24Z.
+- Check completion time (UTC): 2026-10-12T09:45:44Z.
 - Request: https://clinicdesk-api-demo.onrender.com/health
 - HTTP status: 200.
 - Result: VERIFICATION FAILED.

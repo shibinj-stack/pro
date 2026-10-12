@@ -6,9 +6,9 @@
 - Service ID: srv-db698s8473hc73dkp5vg
 - Public URL: https://clinicdesk-api-demo.onrender.com
 - Region configured by render.yaml: Oregon (oregon)
-- Verification timestamp (UTC): 2026-10-12T09:43:24Z
+- Verification timestamp (UTC): 2026-10-12T09:45:44Z
 - Live deployed branch: main
-- Live deployed commit SHA: cded707f64339579cec9904640e468ea12240a59
+- Live deployed commit SHA: b501a3a9856b61ab0130e494f396f873e882cbbd
 - Health endpoint HTTP status: 200
 - Database status from live health payload: not_configured
 
@@ -24,6 +24,6 @@
 - RENDER_SERVICE_ID=srv-db698s8473hc73dkp5vg
 - RENDER_EXTERNAL_URL=https://clinicdesk-api-demo.onrender.com
 - RENDER_GIT_BRANCH=main
-- RENDER_GIT_COMMIT=cded707f64339579cec9904640e468ea12240a59
+- RENDER_GIT_COMMIT=b501a3a9856b61ab0130e494f396f873e882cbbd
 
 Secrets are not included. Exact provider deploy-event ID and event start/finish times must be obtained from Render Events if the rubric requires them; the real running commit SHA and successful verification timestamp are recorded above.

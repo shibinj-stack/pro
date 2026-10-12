@@ -37,6 +37,8 @@ app.get('/health', (_req, res) => {
     status: ok ? 'ok' : 'degraded',
     service: 'clinicdesk-api',
     database: mongoState,
+    databaseUriConfigured: Boolean(process.env.MONGODB_URI),
+    allowNoDatabase: process.env.ALLOW_NO_DATABASE === 'true',
     timestamp: new Date().toISOString(),
     render: onRender ? {
       serviceName: process.env.RENDER_SERVICE_NAME || null,
