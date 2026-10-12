@@ -13,6 +13,7 @@ on:
       - 'evidence/**'
       - 'README.md'
       - 'package.json'
+      - 'MEAN/**'
   workflow_dispatch:
 
 permissions:
@@ -50,6 +51,7 @@ jobs:
           - Deployment instructions
           - Genuine live health-check response and deployment record in evidence/health-check.txt and evidence/deployment.md
           - Safe host/provider environment record in evidence/host-environment.md
+          - Task-folder step-by-step deployment log and evidence under MEAN/module-22-dockerization-production-cloud/task-03-deploy-to-the-cloud-and-commit-the/
 
           ## Last verified results at packaging time
           - API tests: 3 passed, 0 failed
