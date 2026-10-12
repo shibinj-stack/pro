@@ -1,30 +1,50 @@
-# Automated Render deployment and evidence
+# Render deployment and evidence record
 
-## What is automated
-The root `render.yaml` defines a Render Docker Web Service for the API. Render deploys commits automatically, and the GitHub Actions workflow runs API tests, builds the Docker image, waits for the live health endpoint, records the actual response, and commits evidence after a service URL is configured.
+## Current verified service
 
-This repository remains a minimal ClinicDesk deployment demo, not the full original MEAN stack application.
+This repo is currently a minimal API deployment demo, not the original full ClinicDesk MEAN stack application.
 
-## One-time Render setup (required)
-1. Open the Render Dashboard and choose **New → Blueprint**.
-2. Connect GitHub account `shibinj-stack`, select repository `pro`, branch `main`, then apply the root `render.yaml` Blueprint.
-3. Wait for the first deployment to finish. Render will generate the actual public URL; it must not be guessed.
-4. In GitHub, open **Settings → Secrets and variables → Actions → Variables** and add:
-   - Name: `RENDER_SERVICE_URL`
-   - Value: the real Render base URL shown in the service dashboard, e.g. `https://<actual-service>.onrender.com` (replace with the actual value).
-5. Push any relevant commit to `main`, or use **Actions → ClinicDesk deployment checks → Run workflow** and provide the real URL in `backend_url`.
+- Provider: Render
+- Service type: Docker Web Service
+- Service name: `clinicdesk-api-demo`
+- Service ID: `srv-db698s8473hc73dkp5vg`
+- Public URL: https://clinicdesk-api-demo.onrender.com
+- Health endpoint: https://clinicdesk-api-demo.onrender.com/health
+- Render Blueprint region: `oregon` (Oregon)
+- Render deployed branch: `main`
+- Live deployed commit SHA: `9c647ccf3fb6f443267f01b6e8f1505488bf70a8`
+- Verified health-check timestamp in UTC: `2026-10-12T09:00:09Z`
+- HTTP result at that check: `200`
+- Latest successful live-verification workflow: https://github.com/shibinj-stack/pro/actions/runs/38226952649
 
-## Automatic evidence after setup
-On main-branch pushes, GitHub Actions runs tests and a Docker build, then retries the live `/health` endpoint for up to eight minutes. Success requires HTTP 200 and Render-injected metadata showing the actual service ID/name, public URL, branch, and deployed commit SHA. For app/config changes, the live commit must match the commit being checked.
+See `evidence/health-check.txt`, `evidence/deployment.md` and `evidence/host-environment.md` for the exact response, commit identity and safe environment record.
 
-On verification, the workflow writes the real response and UTC check timestamp to `evidence/health-check.txt`, updates `evidence/deployment.md`, and commits both files. Evidence-only commits are excluded from the pipeline triggers and Render build filters to prevent loops. If health verification fails, the actual last response and diagnostic status are recorded and the workflow fails rather than reporting a false pass.
+## Environment values and secret handling
 
-## Database mode
-The current Blueprint sets `ALLOW_NO_DATABASE=true` for a database-free deployment smoke test. This proves the API is reachable, not that MongoDB works. For real database validation, configure a valid `MONGODB_URI` in Render, then remove/set `ALLOW_NO_DATABASE=false` and confirm the health response reports `database: "connected"`.
+Committed in Render Blueprint:
+- `ALLOW_NO_DATABASE=true`
+- `MONGODB_DB=clinicdesk`
 
-## Limits of automated evidence
-The app returns Render's real runtime service and Git commit metadata. Render's exact deploy event timestamp and deploy ID are not exposed by this app's HTTP endpoint; record those separately from the Render service's **Events** page if the course rubric explicitly requires them. Never fill such fields with guessed values.
+Not configured in the committed Blueprint:
+- `MONGODB_URI`: not configured; confirmed by live health payload `database: "not_configured"`. Do not add credentials to source control.
+- `CORS_ORIGIN`: not set in the committed Blueprint; an external dashboard override, if any, is not inferred here.
+
+Render runtime metadata observed in the health payload includes service name, service ID, external URL, deployed branch and deployed commit SHA. The evidence files record this observed metadata and the actual check timestamp. Render's provider-specific deploy-event ID and exact deploy start/finish timestamps aren't returned by the application's public health endpoint; use the Render Events page if the task rubric requires those provider-specific fields.
+
+## Repeatable verification workflow
+
+`.github/workflows/ci.yml`:
+1. Installs API dependencies and runs HTTP-level tests.
+2. Builds the Docker image on a GitHub-hosted runner.
+3. Requests the real `/health` URL and verifies HTTP 200, healthy status and Render service/commit metadata.
+4. Retries temporarily unavailable endpoints during deployment convergence.
+5. Writes the observed response and timestamp to `evidence/health-check.txt`, updates `evidence/deployment.md` and `evidence/host-environment.md`, and commits the evidence.
+6. Fails the workflow if the live verification window ends without a valid success.
+
+The Blueprint sets `ALLOW_NO_DATABASE=true` for a database-free smoke test. That validates API reachability but does not demonstrate MongoDB connectivity. To demonstrate database connectivity, configure `MONGODB_URI` securely in Render, disable demo mode, and verify `database: "connected"`.
+
+Never fabricate deployment logs, IDs, timestamps or response bodies. Record the exact Render deploy event ID and deploy start/finish timestamps from the Render Events page only if required by the task rubric.
 
 References:
-- Render Blueprint specification: https://render.com/docs/blueprint-spec
-- Render runtime environment variables: https://render.com/docs/environment-variables
+- https://render.com/docs/blueprint-spec
+- https://render.com/docs/environment-variables
