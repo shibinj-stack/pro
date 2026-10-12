@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: clinicdesk-api-demo
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ALLOW_NO_DATABASE
+        value: "true"
+      - key: MONGODB_DB
+        value: clinicdesk
