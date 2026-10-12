@@ -22,9 +22,14 @@ async function connectMongo() {
   mongoClient = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 });
   try {
     await mongoClient.connect();
-    db = mongoClient.db(process.env.MONGODB_DB || 'clinicdesk');
+    const candidateDb = mongoClient.db(process.env.MONGODB_DB || 'clinicdesk');
+    // A successful socket connection alone is insufficient; run a real command
+    // to verify authentication and that the selected database is reachable.
+    await candidateDb.command({ ping: 1 });
+    db = candidateDb;
     mongoState = 'connected';
   } catch (error) {
+    db = undefined;
     mongoState = 'disconnected';
     console.error('MongoDB connection failed:', error.message);
   }

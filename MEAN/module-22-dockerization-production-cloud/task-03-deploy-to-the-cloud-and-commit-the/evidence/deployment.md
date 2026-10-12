@@ -5,9 +5,9 @@
 ## Repository and verification
 - Repository: https://github.com/shibinj-stack/pro
 - Branch tested by GitHub Actions: main
-- GitHub workflow commit: b41a6d3b4ab2b65a38bd7621f4c4d9a1ca77dc96
-- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38234690545
-- Live health check time (UTC): 2026-10-12T10:11:20Z
+- GitHub workflow commit: 67c61a264ff8a7aac9fa2d074a58a2149e26863e
+- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38235467094
+- Live health check time (UTC): 2026-10-12T10:18:40Z
 - HTTP status from /health: 200
 - Verification note: Render service responded with database=not_configured. Set MONGODB_URI as a Render secret and ALLOW_NO_DATABASE=false, then redeploy.
 - MongoDB status from response: not_configured
@@ -17,7 +17,7 @@
 - Render service ID: srv-db698s8473hc73dkp5vg
 - Render public URL: https://clinicdesk-api-demo.onrender.com
 - Render deployed branch: main
-- Render deployed commit SHA: 31dfc29e6d3e4493c0c331b054cac9782cae7313
+- Render deployed commit SHA: 67c61a264ff8a7aac9fa2d074a58a2149e26863e
 - Blueprint-declared Render region: Oregon (oregon)
 - Deployment identity: full running Git commit SHA above, returned by the live Render service.
 - Provider-specific Render deploy-event ID and exact event start/finish times are not returned by the public health endpoint. The timestamped live verification above records when the running revision was checked; use Render Events for provider-only event fields if specifically required.
@@ -34,7 +34,7 @@
 
 ## Exact health response
  ```json
-{"status":"ok","service":"clinicdesk-api","database":"not_configured","databaseUriConfigured":false,"allowNoDatabase":true,"timestamp":"2026-10-12T10:11:20.592Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"31dfc29e6d3e4493c0c331b054cac9782cae7313"}}
+{"status":"ok","service":"clinicdesk-api","database":"not_configured","databaseUriConfigured":false,"allowNoDatabase":true,"timestamp":"2026-10-12T10:18:40.618Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"67c61a264ff8a7aac9fa2d074a58a2149e26863e"}}
  ```
 
 Secrets are intentionally excluded.
