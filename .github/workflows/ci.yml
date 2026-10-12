@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths-ignore:
       - 'evidence/**'
+      - 'MEAN/**'
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -52,6 +53,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push versioned Docker image
+        id: build-push
         uses: docker/build-push-action@v6
         with:
           context: ./server
@@ -66,6 +68,8 @@ jobs:
           BACKEND_URL: ${{ vars.RENDER_SERVICE_URL }}
           MANUAL_BACKEND_URL: ${{ inputs.backend_url }}
           DEPLOYMENT_HINT: ${{ inputs.deployment_id }}
+          IMAGE_REF: ghcr.io/${{ github.repository_owner }}/clinicdesk-api-demo:${{ github.sha }}
+          IMAGE_DIGEST: ${{ steps.build-push.outputs.digest }}
         run: |
           set -u
           BASE_URL="${MANUAL_BACKEND_URL:-${BACKEND_URL:-https://clinicdesk-api-demo.onrender.com}}"
@@ -212,6 +216,102 @@ jobs:
           } > evidence/host-environment.md
 
           {
+            echo "# Container Image Build and Push Record"
+            echo
+            echo "- Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo "- Source commit used for CI image build: $GITHUB_SHA"
+            echo "- Image tag: $IMAGE_REF"
+            echo "- Image digest reported by build-push action: ${IMAGE_DIGEST:-NOT_RETURNED}"
+            echo "- Registry: GitHub Container Registry (ghcr.io)"
+            echo "- Image build/push step: completed successfully before this health-check step"
+            echo "- Important: the running Render service is Blueprint-managed with runtime=docker, so it builds from the repository Dockerfile. The GHCR image above is a separately published CI artifact; it is not claimed to be the image pulled by the existing Render service."
+            echo
+            echo "Secrets are excluded."
+          } > evidence/image-push.md
+
+          TASK_DIR="MEAN/module-22-dockerization-production-cloud/task-03-deploy-to-the-cloud-and-commit-the"
+          mkdir -p "$TASK_DIR/docs" "$TASK_DIR/evidence" "$TASK_DIR/server/test"
+
+          cat > "$TASK_DIR/docs/deployment.md" <<EOF
+          # Step-by-Step Cloud Deployment Log — Week 22 Task 03
+
+          ## Deployment target
+          - Provider: Render
+          - Service type: Docker Web Service
+          - Service name: $SERVICE_NAME
+          - Service ID: $SERVICE_ID
+          - Public URL: ${LIVE_URL:-$BASE_URL}
+          - Health endpoint: $URL
+          - Region declared by Blueprint: Oregon (oregon)
+          - Repository: https://github.com/$GITHUB_REPOSITORY
+          - Branch: main
+
+          ## 1. Build and validate the application
+          - The GitHub Actions workflow installed the API dependencies in server/ and ran the Node HTTP tests.
+          - Test command: npm test (working directory: server).
+          - Docker build context: server/.
+          - Dockerfile: server/Dockerfile.
+          - Result in this workflow run: API tests passed and the Docker image build completed successfully.
+          - Build/run details: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+
+          ## 2. Push the versioned container image
+          - Registry: GitHub Container Registry (ghcr.io).
+          - Pushed image reference: $IMAGE_REF
+          - Image digest: ${IMAGE_DIGEST:-NOT_RETURNED}
+          - The GHCR publish step completed successfully in the linked workflow run.
+          - Deployment relationship: the existing Render service is configured with runtime=docker in render.yaml. Render builds from the repository's Dockerfile; this log does not falsely claim that Render pulled the separate GHCR image.
+
+          ## 3. Provision the cloud service
+          - Render Blueprint: repository-root render.yaml.
+          - Render created the web service clinicdesk-api-demo.
+          - Service ID observed from the live health payload: $SERVICE_ID.
+          - Blueprint-selected runtime: Docker Web Service.
+          - Blueprint-selected region: Oregon (oregon).
+          - Render dashboard showed the service as Live; the supplied Deploys screenshot showed a 30.2 second duration for the deployment row running commit 9c647cc.
+
+          ## 4. Configure host environment
+          - ALLOW_NO_DATABASE=true was configured by render.yaml for a database-free smoke deployment.
+          - MONGODB_DB=clinicdesk was configured by render.yaml.
+          - MONGODB_URI is not configured in the committed Blueprint; the live response reports database state not_configured.
+          - CORS_ORIGIN is not set in the committed Blueprint; any independent dashboard override is not inferred.
+          - No secret values are written to source control or this log.
+
+          ## 5. Deploy the application
+          - Render deployed the Git source revision reported by the running service: $LIVE_COMMIT.
+          - The deployed branch reported by Render: $LIVE_BRANCH.
+          - Render service public URL: ${LIVE_URL:-$BASE_URL}.
+          - Render's current configuration builds from server/Dockerfile on the selected Git commit. The GHCR image above is retained as a versioned CI artifact, not misidentified as the active Render image.
+          - The exact provider deployment event start/finish times are not exposed by the public health endpoint. Use the Render Deploys/Events panel for provider-specific event timestamps if the evaluator requires them.
+
+          ## 6. Verify the live deployment
+          - Verification time (UTC): $CHECKED_AT
+          - Endpoint requested: $URL
+          - HTTP response status: $STATUS
+          - Health verification result: $RESULT
+          - Response body and Render identity metadata: ../evidence/health-check.txt
+          - Host/service environment record: ../evidence/host-environment.md
+          - Deployment evidence: ../evidence/deployment.md
+          - Verification workflow: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+
+          ## Result and qualification
+          The live API returned HTTP $STATUS and supplied Render service identity, branch, and deployed commit metadata at $CHECKED_AT. The app is in database-free smoke-test mode (database not_configured); this confirms API reachability, not MongoDB connectivity. The API source in this repository is a minimal deployment demo, not the original full ClinicDesk MEAN application.
+          EOF
+
+          cp evidence/deployment.md "$TASK_DIR/evidence/deployment.md"
+          cp evidence/health-check.txt "$TASK_DIR/evidence/health-check.txt"
+          cp evidence/host-environment.md "$TASK_DIR/evidence/host-environment.md"
+          cp evidence/image-push.md "$TASK_DIR/evidence/image-push.md"
+          cp render.yaml "$TASK_DIR/render.yaml"
+          cp server/Dockerfile "$TASK_DIR/server/Dockerfile"
+          cp server/.dockerignore "$TASK_DIR/server/.dockerignore"
+          cp server/index.js "$TASK_DIR/server/index.js"
+          cp server/package.json "$TASK_DIR/server/package.json"
+          cp server/test/health.test.js "$TASK_DIR/server/test/health.test.js"
+          cp server/.dockerignore "$TASK_DIR/.dockerignore"
+          cp .dockerignore "$TASK_DIR/repository-root.dockerignore"
+          cp server/package.json "$TASK_DIR/package.json"
+
+          {
             echo "## Live deployment verification"
             echo "- Result: **$RESULT**"
             echo "- URL: ${LIVE_URL:-$BASE_URL}"
@@ -229,7 +329,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'docs: record live Render deployment health evidence'
-          file_pattern: evidence/health-check.txt evidence/deployment.md evidence/host-environment.md
+          file_pattern: evidence/health-check.txt evidence/deployment.md evidence/host-environment.md evidence/image-push.md MEAN/module-22-dockerization-production-cloud/task-03-deploy-to-the-cloud-and-commit-the/
 
       - name: Fail deployment verification when live health check is not successful
         if: ${{ steps.healthcheck.outputs.evidence_written == 'true' && steps.healthcheck.outputs.verified != 'true' }}
