@@ -1,4 +1,4 @@
-import fs from "node:fs";
+const fs = require("node:fs");
 const required = [
   "docs/deployment.md",
   "deployment.md",

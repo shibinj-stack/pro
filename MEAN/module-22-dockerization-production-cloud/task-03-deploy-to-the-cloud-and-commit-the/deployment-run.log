@@ -1,8 +1,8 @@
 ClinicDesk Week 22 Task 03 — Deployment Execution Log
 Repository: https://github.com/shibinj-stack/pro
 Branch: main
-GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38229610295
-Log generated at (UTC): 2026-10-12T09:24:12Z
+GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38229785519
+Log generated at (UTC): 2026-10-12T09:26:00Z
 
 STEP 1 — BUILD AND TEST
 - Dependencies installed from server/package.json.
@@ -11,8 +11,8 @@ STEP 1 — BUILD AND TEST
 - Docker image build: succeeded in this run.
 
 STEP 2 — PUSH VERSIONED IMAGE
-- Image reference: ghcr.io/shibinj-stack/clinicdesk-api-demo:88646a60a51849d24f4803a9af8418326ccaa748
-- Image digest: sha256:3af46a57ced7b39c7532c959e1c521556744e4bbff0c0b28d62d98141b5fae89
+- Image reference: ghcr.io/shibinj-stack/clinicdesk-api-demo:b82ceab8d4869fc85298886103285101992a122a
+- Image digest: sha256:f289e7f305b18c21857d864ba95288d9d8d0017674c44dba0253255d807f77b8
 - Registry push: GitHub Container Registry (ghcr.io), completed successfully in this run.
 - Note: this GHCR image is a versioned CI artifact. The current Render service uses runtime=docker and builds from repository source; the log does not claim Render pulled the GHCR image.
 
@@ -40,7 +40,7 @@ STEP 5 — DEPLOY
 - Provider-specific deploy-event ID and exact event start/finish timestamps are not returned by /health. The health-check time below is the timestamp of verification, not mislabelled as the deploy event time.
 
 STEP 6 — VERIFY LIVE SERVICE
-- Check time (UTC): 2026-10-12T09:24:12Z.
+- Check time (UTC): 2026-10-12T09:26:00Z.
 - Request: https://clinicdesk-api-demo.onrender.com/health
 - HTTP status: 200.
 - Result: LIVE ENDPOINT VERIFIED.
