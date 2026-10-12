@@ -10,11 +10,11 @@ on:
   workflow_dispatch:
     inputs:
       backend_url:
-        description: 'Optional live backend URL; otherwise uses repository variable RENDER_SERVICE_URL'
+        description: 'Optional live backend URL; defaults to the deployed Render service'
         required: false
         type: string
       deployment_id:
-        description: 'Optional deployed commit SHA or Render deploy identifier for the record'
+        description: 'Optional Render deploy identifier or deployed commit SHA'
         required: false
         type: string
 
@@ -46,16 +46,6 @@ jobs:
       - name: Build Docker image
         run: docker build -f server/Dockerfile -t clinicdesk-api:${{ github.sha }} server
 
-      - name: Explain how to enable automatic cloud evidence
-        if: ${{ false }}
-        run: |
-          {
-            echo "## Render deployment verification"
-            echo "CI and Docker build passed, but live deployment verification was skipped."
-            echo "Create/sync the Render Blueprint, then add the public service base URL as repository variable RENDER_SERVICE_URL."
-            echo "The health-check and deployment evidence steps will then run automatically on each main-branch push."
-          } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Verify live Render service and capture actual evidence
         id: healthcheck
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
@@ -66,26 +56,21 @@ jobs:
         run: |
           set -u
           BASE_URL="${MANUAL_BACKEND_URL:-${BACKEND_URL:-https://clinicdesk-api-demo.onrender.com}}"
-          if [ -z "$BASE_URL" ]; then
-            echo "No backend URL was provided. Set repository variable RENDER_SERVICE_URL or use workflow_dispatch input backend_url."
-            echo "verified=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
           case "$BASE_URL" in
             https://*) ;;
-            *) echo "RENDER_SERVICE_URL must be an https:// URL"; echo "verified=false" >> "$GITHUB_OUTPUT"; exit 0 ;;
+            *) echo "Backend URL must use https://"; echo "verified=false" >> "$GITHUB_OUTPUT"; exit 0 ;;
           esac
 
           URL="${BASE_URL%/}/health"
           EXPECTED_COMMIT=""
           CHANGED_FILES="$(git diff --name-only HEAD^ HEAD 2>/dev/null || true)"
-          if printf '%s\n' "$CHANGED_FILES" | grep -qx 'render.yaml' ||              printf '%s\n' "$CHANGED_FILES" | grep '^server/' | grep -qv '^server/test/'; then
+          if printf '%s\n' "$CHANGED_FILES" | grep -qx 'render.yaml' || printf '%s\n' "$CHANGED_FILES" | grep '^server/' | grep -qv '^server/test/'; then
             EXPECTED_COMMIT="$GITHUB_SHA"
           fi
 
           STATUS="000"
           VERIFIED="false"
-          REASON="No successful, metadata-complete health response was received within the retry window."
+          REASON="No healthy response containing Render metadata received within the retry window."
           SERVICE_NAME=""
           SERVICE_ID=""
           LIVE_URL="$BASE_URL"
@@ -103,7 +88,7 @@ jobs:
             LIVE_BRANCH="$(jq -r '.render.gitBranch // empty' "$BODY_FILE" 2>/dev/null || true)"
             LIVE_COMMIT="$(jq -r '.render.gitCommit // empty' "$BODY_FILE" 2>/dev/null || true)"
 
-            if [ "$STATUS" = "200" ] &&                jq -e '.status == "ok" and .render != null' "$BODY_FILE" >/dev/null 2>&1 &&                [ -n "$SERVICE_NAME" ] && [ -n "$SERVICE_ID" ] &&                [ -n "$LIVE_URL" ] && [ -n "$LIVE_COMMIT" ]; then
+            if [ "$STATUS" = "200" ] && jq -e '.status == "ok" and .render != null' "$BODY_FILE" >/dev/null 2>&1 && [ -n "$SERVICE_NAME" ] && [ -n "$SERVICE_ID" ] && [ -n "$LIVE_URL" ] && [ -n "$LIVE_COMMIT" ]; then
               if [ -z "$EXPECTED_COMMIT" ] || [ "$LIVE_COMMIT" = "$EXPECTED_COMMIT" ]; then
                 VERIFIED="true"
                 REASON="HTTP 200; application reports healthy and supplies Render service/commit metadata."
@@ -111,7 +96,7 @@ jobs:
               fi
               REASON="HTTP 200, but the running Render commit has not yet reached the pushed commit; retrying."
             else
-              REASON="Attempt $attempt/24: waiting for HTTP 200 with live Render service/commit metadata (received HTTP $STATUS)."
+              REASON="Attempt $attempt/24: waiting for HTTP 200 with Render service/commit metadata (received HTTP $STATUS)."
             fi
             sleep 20
           done
@@ -145,21 +130,21 @@ jobs:
             echo
             echo "## Repository and verification"
             echo "- Repository: https://github.com/$GITHUB_REPOSITORY"
-            echo "- Branch tested by GitHub Actions: `main`"
-            echo "- GitHub workflow commit: `$GITHUB_SHA`"
+            echo "- Branch tested by GitHub Actions: main"
+            echo "- GitHub workflow commit: $GITHUB_SHA"
             echo "- GitHub Actions run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-            echo "- Live health check time (UTC): `$CHECKED_AT`"
-            echo "- HTTP status from /health: `$STATUS`"
+            echo "- Live health check time (UTC): $CHECKED_AT"
+            echo "- HTTP status from /health: $STATUS"
             echo "- Verification note: $REASON"
             echo
             echo "## Actual Render metadata returned by the live service"
-            echo "- Render service name: `${SERVICE_NAME:-NOT_RETURNED}`"
-            echo "- Render service ID: `${SERVICE_ID:-NOT_RETURNED}`"
-            echo "- Render public URL: `${LIVE_URL:-$BASE_URL}`"
-            echo "- Render deployed branch: `${LIVE_BRANCH:-NOT_RETURNED}`"
-            echo "- Render deployed commit SHA: `${LIVE_COMMIT:-NOT_RETURNED}`"
-            echo "- Render region configured in render.yaml: `oregon` (confirm in dashboard)"
-            echo "- Render provider deployment start/finish timestamp and deploy ID: see Render Events; the HTTP endpoint does not expose those fields. The deployed commit SHA above identifies the running revision."
+            echo "- Render service name: ${SERVICE_NAME:-NOT_RETURNED}"
+            echo "- Render service ID: ${SERVICE_ID:-NOT_RETURNED}"
+            echo "- Render public URL: ${LIVE_URL:-$BASE_URL}"
+            echo "- Render deployed branch: ${LIVE_BRANCH:-NOT_RETURNED}"
+            echo "- Render deployed commit SHA: ${LIVE_COMMIT:-NOT_RETURNED}"
+            echo "- Render region configured in render.yaml: Oregon (confirm in dashboard)"
+            echo "- Render deploy ID and exact start/finish timestamp: check the Render Events page; these are not exposed by the health endpoint."
             echo
             echo "## Exact health response"
             echo ' ```json'
