@@ -56,7 +56,7 @@ jobs:
           - Docker image build: passed
           - Live /health response: HTTP 200
           - Health payload currently reports database = not_configured; this is a demo smoke deployment and does not prove MongoDB connectivity.
-          - Latest known successful live-verification workflow: https://github.com/shibinj-stack/pro/actions/runs/38227244715
+          - Latest known successful live-verification workflow: https://github.com/shibinj-stack/pro/actions/runs/38227692541
 
           ## Scope warning
           This repository is a minimal deployment demo, not the user's original full ClinicDesk MEAN stack app. Submit it only if this demo is the project intended for this AxReview task. Do not present it as the original full application.
