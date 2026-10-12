@@ -469,7 +469,7 @@ jobs:
           SH
 
           cat > "$TASK_DIR/scripts/generate-deployment-md.js" <<'JS'
-          import fs from "node:fs";
+          const fs = require("node:fs");
           const required = [
             "docs/deployment.md",
             "deployment.md",
@@ -512,6 +512,11 @@ jobs:
 
           echo "verified=$VERIFIED" >> "$GITHUB_OUTPUT"
           echo "evidence_written=true" >> "$GITHUB_OUTPUT"
+
+      - name: Validate AxReview task-folder evidence
+        if: ${{ steps.healthcheck.outputs.evidence_written == 'true' }}
+        working-directory: MEAN/module-22-dockerization-production-cloud/task-03-deploy-to-the-cloud-and-commit-the
+        run: node scripts/generate-deployment-md.js
 
       - name: Commit live deployment evidence
         if: ${{ always() && steps.healthcheck.outputs.evidence_written == 'true' }}
