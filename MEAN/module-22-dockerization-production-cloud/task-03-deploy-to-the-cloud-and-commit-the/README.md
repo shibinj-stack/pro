@@ -17,6 +17,6 @@ This folder contains the step-by-step deployment log, verified health-check resp
 ## Important deployment distinctions
 The live Render service is Blueprint-managed with runtime=docker and builds from repository source. GitHub Actions separately publishes a versioned CI image to GHCR; this package does not claim that Render pulled that image. The active deployment identity is the full commit SHA reported by Render's live /health endpoint.
 
-The running service uses ALLOW_NO_DATABASE=true for a smoke deployment. HTTP 200 confirms API reachability, but database state remains not_configured; it does not prove MongoDB connectivity. Secrets are not committed.
+The service's ALLOW_NO_DATABASE and MONGODB_URI settings are controlled in Render and are not committed as secret values. The GitHub workflow accepts a full deployment pass only when the live /health payload reports database=connected. If the current evidence says not_configured or disconnected, configure a real MongoDB Atlas connection string in Render, set ALLOW_NO_DATABASE=false there, then redeploy and rerun checks.
 
 To run local checks from this folder: npm install, npm test, npm run check-evidence. The health-capture helper makes a real HTTP request only when supplied with a real BACKEND_URL.
