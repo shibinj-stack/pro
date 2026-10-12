@@ -120,17 +120,25 @@ jobs:
             LIVE_BRANCH="$(jq -r '.render.gitBranch // empty' "$BODY_FILE" 2>/dev/null || true)"
             LIVE_COMMIT="$(jq -r '.render.gitCommit // empty' "$BODY_FILE" 2>/dev/null || true)"
 
+            DATABASE_STATE="$(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
             if [ "$STATUS" = "200" ] && jq -e '.status == "ok" and .render != null' "$BODY_FILE" >/dev/null 2>&1 && [ -n "$SERVICE_NAME" ] && [ -n "$SERVICE_ID" ] && [ -n "$LIVE_URL" ] && [ -n "$LIVE_COMMIT" ]; then
-              if [ -z "$EXPECTED_COMMIT" ] || [ "$LIVE_COMMIT" = "$EXPECTED_COMMIT" ]; then
+              if [ "$DATABASE_STATE" != "connected" ]; then
+                VERIFIED="false"
+                REASON="The endpoint returned HTTP 200, but MongoDB state is '$DATABASE_STATE'. A database-free smoke response is not accepted as a full deployment pass."
+                if [ "$DATABASE_STATE" = "not_configured" ]; then
+                  break
+                fi
+              elif [ -z "$EXPECTED_COMMIT" ] || [ "$LIVE_COMMIT" = "$EXPECTED_COMMIT" ]; then
                 VERIFIED="true"
                 PROVISION_STATE_OBSERVED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
                 DEPLOYED_REVISION_OBSERVED_AT="$PROVISION_STATE_OBSERVED_AT"
-                REASON="HTTP 200; application reports healthy and supplies Render service/commit metadata."
+                REASON="HTTP 200; application reports healthy, MongoDB is connected, and Render service/commit metadata matches."
                 break
+              else
+                REASON="HTTP 200 with MongoDB connected, but the running Render commit has not yet reached the pushed commit; retrying."
               fi
-              REASON="HTTP 200, but the running Render commit has not yet reached the pushed commit; retrying."
             else
-              REASON="Attempt $attempt/24: waiting for HTTP 200 with Render service/commit metadata (received HTTP $STATUS)."
+              REASON="Attempt $attempt/24: waiting for HTTP 200 with MongoDB connected and Render service/commit metadata (received HTTP $STATUS; database=$DATABASE_STATE)."
             fi
             sleep 20
           done
@@ -172,6 +180,7 @@ jobs:
             echo "- Live health check time (UTC): $CHECKED_AT"
             echo "- HTTP status from /health: $STATUS"
             echo "- Verification note: $REASON"
+            echo "- MongoDB status from response: $(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
             echo
             echo "## Actual Render metadata returned by the live service"
             echo "- Render service name: ${SERVICE_NAME:-NOT_RETURNED}"
@@ -189,7 +198,7 @@ jobs:
             echo "- Service type: Docker Web Service"
             echo "- ALLOW_NO_DATABASE=true (Blueprint setting for database-free smoke test; this does not prove MongoDB connectivity)"
             echo "- MONGODB_DB=clinicdesk (Blueprint setting)"
-            echo "- MONGODB_URI: not configured in the committed Blueprint; live payload reports database not_configured"
+            echo "- MONGODB_URI is declared with sync: false and must be set as a secret in the Render dashboard; its value is never logged. Live database state: $(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
             echo "- CORS_ORIGIN: not set in the committed Blueprint; separate dashboard overrides are not inferred"
             echo "- Render-injected metadata verified live: service name, service ID, external URL, Git branch, and full deployed Git commit SHA"
             echo
@@ -220,7 +229,7 @@ jobs:
             echo "## Application environment values set in Render Blueprint"
             echo "- ALLOW_NO_DATABASE=true (demo smoke-test mode; permits health HTTP 200 without MongoDB)"
             echo "- MONGODB_DB=clinicdesk"
-            echo "- MONGODB_URI=not configured (no secret value is recorded; live health response reports database not_configured)"
+            echo "- MONGODB_URI is a non-synced secret variable that must be configured in Render; secret value excluded. Live database state: $(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED)"
             echo "- CORS_ORIGIN=not set in the committed Blueprint; application fallback behavior applies unless a dashboard override exists"
             echo
             echo "## Render runtime metadata observed through the live /health response"
@@ -299,7 +308,8 @@ jobs:
           - Blueprint and returned host-configuration values audited (UTC): $HOST_CONFIG_AUDIT_AT.
           - ALLOW_NO_DATABASE=true was configured by render.yaml for a database-free smoke deployment.
           - MONGODB_DB=clinicdesk was configured by render.yaml.
-          - MONGODB_URI is not configured in the committed Blueprint; the live response reports database state not_configured.
+          - MONGODB_URI is declared as a non-synced Render secret (sync: false). Configure a real Atlas connection string in the Render dashboard; its value is never committed or logged.
+          - Live database state observed during this run: $(jq -r '.database // "NOT_RETURNED"' "$BODY_FILE" 2>/dev/null || echo NOT_RETURNED).
           - CORS_ORIGIN is not set in the committed Blueprint; any independent dashboard override is not inferred.
           - No secret values are written to source control or this log.
 
