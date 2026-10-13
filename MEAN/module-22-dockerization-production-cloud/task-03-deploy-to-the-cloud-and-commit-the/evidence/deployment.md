@@ -1,23 +1,23 @@
 # Render Deployment Record
 
-**Result: VERIFICATION FAILED**
+**Result: LIVE ENDPOINT VERIFIED**
 
 ## Repository and verification
 - Repository: https://github.com/shibinj-stack/pro
 - Branch tested by GitHub Actions: main
-- GitHub workflow commit: 5e0144d415be9dbd13805e6d6526d05dfbb57566
-- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38235842253
-- Live health check time (UTC): 2026-10-12T10:22:12Z
+- GitHub workflow commit: 759166c73db44a20468bdad6f0e8c006fa683626
+- GitHub Actions run: https://github.com/shibinj-stack/pro/actions/runs/38346002453
+- Live health check time (UTC): 2026-10-13T04:21:23Z
 - HTTP status from /health: 200
-- Verification note: Render service responded with database=not_configured. Set MONGODB_URI as a Render secret and ALLOW_NO_DATABASE=false, then redeploy.
-- MongoDB status from response: not_configured
+- Verification note: HTTP 200; application reports healthy, MongoDB is connected, and Render service/commit metadata matches.
+- MongoDB status from response: connected
 
 ## Actual Render metadata returned by the live service
 - Render service name: clinicdesk-api-demo
 - Render service ID: srv-db698s8473hc73dkp5vg
 - Render public URL: https://clinicdesk-api-demo.onrender.com
 - Render deployed branch: main
-- Render deployed commit SHA: 67c61a264ff8a7aac9fa2d074a58a2149e26863e
+- Render deployed commit SHA: 6d8469be4ea7b44e4bedf0c04ed09b829cd12df2
 - Blueprint-declared Render region: Oregon (oregon)
 - Deployment identity: full running Git commit SHA above, returned by the live Render service.
 - Provider-specific Render deploy-event ID and exact event start/finish times are not returned by the public health endpoint. The timestamped live verification above records when the running revision was checked; use Render Events for provider-only event fields if specifically required.
@@ -26,15 +26,15 @@
 ## Host environment values
 - Provider: Render
 - Service type: Docker Web Service
-- ALLOW_NO_DATABASE runtime value: true (full deployment verification requires database=connected)
+- ALLOW_NO_DATABASE runtime value: false (full deployment verification requires database=connected)
 - MONGODB_DB=clinicdesk (Blueprint setting)
-- MONGODB_URI runtime configured flag: false; connection state: not_configured; not configured in Render; add the actual connection string as the MONGODB_URI secret (no value committed)
+- MONGODB_URI runtime configured flag: true; connection state: connected; configured in Render and connected (secret value intentionally redacted)
 - CORS_ORIGIN: not set in the committed Blueprint; separate dashboard overrides are not inferred
 - Render-injected metadata verified live: service name, service ID, external URL, Git branch, and full deployed Git commit SHA
 
 ## Exact health response
  ```json
-{"status":"ok","service":"clinicdesk-api","database":"not_configured","databaseUriConfigured":false,"allowNoDatabase":true,"timestamp":"2026-10-12T10:22:12.242Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"67c61a264ff8a7aac9fa2d074a58a2149e26863e"}}
+{"status":"ok","service":"clinicdesk-api","database":"connected","databaseUriConfigured":true,"allowNoDatabase":false,"timestamp":"2026-10-13T04:21:23.844Z","render":{"serviceName":"clinicdesk-api-demo","serviceId":"srv-db698s8473hc73dkp5vg","externalUrl":"https://clinicdesk-api-demo.onrender.com","gitBranch":"main","gitCommit":"6d8469be4ea7b44e4bedf0c04ed09b829cd12df2"}}
  ```
 
 Secrets are intentionally excluded.
